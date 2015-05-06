@@ -7,7 +7,9 @@ import json
 
 
 class Message(object):
-
+    """
+    A simplified message containing only the data needed from parsing.
+    """
     def __init__(self,
                  msg_id,
                  recv_from,
@@ -24,6 +26,15 @@ class Message(object):
 
 
 def parse_line(line):
+    """
+    Parse a line in the chat logs.
+
+    @param line - a json string containing a id, from, site_id, type,
+        data[status], and a timestamp field.
+    @type line - a string
+
+    @returns a new L{parser.Message} object.
+    """
     msg = json.loads(line)
     return Message(
         msg_id=msg["id"],
