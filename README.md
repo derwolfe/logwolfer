@@ -3,7 +3,7 @@ Initial design
 
 Steps:
 
-* -Create functions that can parse messages-
+* ~~Create functions that can parse messages~~
 * use json.loads/dumps on each line
 * Create a reader that can read a line at a time.
 * Use the message id & timestamp as a primary key
