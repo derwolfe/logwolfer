@@ -6,9 +6,10 @@ to load new records into the database and to analyze them.
 import json
 import sqlite3
 
+
 class Message(object):
     """
-    A simplified message containing only the data needed from parsing.
+    A chat message intended for a site.
     """
     def __init__(self,
                  msg_id,
@@ -23,6 +24,32 @@ class Message(object):
         self.msg_type = msg_type
         self.status = status
         self.timestamp = timestamp
+
+
+class Status(object):
+    """
+    A status message that states whether or not a given site is online.
+    """
+    def __init__(self,
+                 msg_id,
+                 recv_from,
+                 site_id,
+                 msg_type,
+                 status,
+                 timestamp):
+        self.msg_id = msg_id
+        self.recv_from = recv_from
+        self.site_id = site_id
+        self.msg_type = msg_type
+        self.online = Status.is_online(status)
+        self.timestamp = timestamp
+
+    @staticmethod
+    def is_online(status):
+        if status == u"online":
+            return True
+        else:
+            return False
 
 
 def parse_line(line):
@@ -49,16 +76,25 @@ def parse_line(line):
     @returns a new L{parser.Message} object.
     """
     msg = json.loads(line)
-    return Message(
-        msg_id=msg["id"],
-        recv_from=msg["from"],
-        site_id=msg["site_id"],
-        msg_type=msg["type"],
-        # there is a problem with this, the status field can be either a
-        # message OR a status message.
-        status=msg["data"]["status"],
-        timestamp=msg["timestamp"]
-    )
+    if msg["type"] == u"message":
+        return Message(
+            msg_id=msg["id"],
+            recv_from=msg["from"],
+            site_id=msg["site_id"],
+            msg_type=msg["type"],
+            status=msg["data"]["message"],
+            timestamp=msg["timestamp"]
+        )
+    else:
+        return Status(
+            msg_id=msg["id"],
+            recv_from=msg["from"],
+            site_id=msg["site_id"],
+            msg_type=msg["type"],
+            status=msg["data"]["status"],
+            timestamp=msg["timestamp"]
+        )
+
 
 def build_database(conn_string):
     connection = conn_string.connect()
@@ -80,8 +116,13 @@ def build_database(conn_string):
 # or is this something that you should query out.
 # if it is by query, you will need to order the results by their timestamps
 # to know which window they used (i.e. email or chat).
+# soln: make a message table, a status table, and a email/chat table
+# when you are finished reading the messages and status, begin to add
+# records to the email_chat table, basically jsaying "message 12312 is chat"
+# then run join/sum on that table to get the results.
 
 # create a database
+
 # read the lines from the log into the database
 #    only insert if PK doesn't already exist.
 # Every unique message will also have a unique timestamp.
