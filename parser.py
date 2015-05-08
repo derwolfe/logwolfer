@@ -4,7 +4,18 @@ to load new records into the database and to analyze them.
 """
 
 import json
-import sqlite3
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    DateTime,
+    String,
+    Boolean,
+    ForeignKey,
+    MetaData,
+    Table,
+    create_engine
+)
 
 
 class Message(object):
@@ -73,7 +84,7 @@ def parse_line(line):
         data[status], and a timestamp field.
     @type line - a string
 
-    @returns a new L{parser.Message} object.
+    @returns a new L{parser.Message} or L{parser.Status} object.
     """
     msg = json.loads(line)
     if msg["type"] == u"message":
@@ -95,25 +106,39 @@ def parse_line(line):
             timestamp=msg["timestamp"]
         )
 
+# the tables
+connectionString = "sqlite:///"
+engine = create_engine(connectionString + "chat_logs.db", echo=True)
+metadata = MetaData(bind=engine)
+messages = Table(
+    "messages", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("from", String, nullable=False),
+    Column("site_id", Integer, nullable=False),
+    Column("type", String, nullable=False),
+    Column("status", String, nullable=False),
+    Column("timestamp", DateTime, nullable=False)
+)
 
-def build_database(conn_string):
-    connection = conn_string.connect()
-    connection.execute("""
-    CREATE TABLE messages (
-    message_id TEXT primary key not null
-    , from TEXT not null
-    , site_id BIGINT not null
-    , type TEXT not null
-    , status BOOLEAN not null
-    , timestamp DATETIME not null
-""")
+statuses = Table(
+    "statuses", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("from", String, nullable=False),
+    Column("site_id", Integer, nullable=False),
+    Column("type", String, nullable=False),
+    Column("online", Boolean, nullable=False),
+    Column("timestamp", DateTime, nullable=False)
 
-# you basically want to know which chats are delivered as emails vs which are
-# are sent online. This means the timestamp is much more important than you
-# had thought. Effectively you need to know when a site is online, then you can
-# know if the user sent it as an email or as a chat.
-# is this something you should rely on with data entry, that is learn it ON insert
-# or is this something that you should query out.
+)
+email_or_chats = Table(
+    "email_or_chat", metadata,
+    Column("id", Integer, ForeignKey("messages.id"), primary_key=True),
+    Column("email", Boolean, nullable=False),
+    Column("chat", Boolean, nullable=False)
+)
+metadata.create_all()
+
+
 # if it is by query, you will need to order the results by their timestamps
 # to know which window they used (i.e. email or chat).
 # soln: make a message table, a status table, and a email/chat table
@@ -128,11 +153,5 @@ def build_database(conn_string):
 # Every unique message will also have a unique timestamp.
 # you can do an insert and then ignore duplicates
 
-#CREATE TABLE bookmarks(
-#    users_id INTEGER,
-#    lessoninfo_id INTEGER,
-#    UNIQUE(users_id, lessoninfo_id)
-#);
-#INSERT OR IGNORE INTO bookmarks(users_id, lessoninfo_id) VALUES(123, 456)
 
 # query the database with select ... group by...msg
