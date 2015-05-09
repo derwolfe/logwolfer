@@ -76,6 +76,16 @@ class Message(object):
         self.status = status
         self.timestamp = datetime.fromtimestamp(timestamp)
 
+    def to_dict(self):
+        return dict(
+            id=self.msg_id,
+            from_id=self.recv_from,
+            site_id=self.site_id,
+            type=self.msg_type,
+            status=self.status,
+            timestamp=self.timestamp
+        )
+
 
 class Status(object):
     """
@@ -101,6 +111,16 @@ class Status(object):
             return True
         else:
             return False
+
+    def to_dict(self):
+        return dict(
+            id=self.status_id,
+            from_id=self.recv_from,
+            site_id=self.site_id,
+            type=self.msg_type,
+            status=self.status,
+            timestamp=self.timestamp
+        )
 
 
 def parse_line(line):
@@ -155,47 +175,31 @@ def insert_statuses(statuses):
 
     @returns - None
     """
-    to_db = []
-    for s in statuses:
-        parsed = dict(
-            id=s.status_id,
-            from_id=s.recv_from,
-            site_id=s.site_id,
-            type=s.msg_type,
-            status=s.status,
-            timestamp=s.timestamp
-        )
-        to_db.append(parsed)
     insert_stmt = Statuses.insert(
         prefixes=['OR IGNORE']
     )
-    engine.execute(insert_stmt, to_db)
+    engine.execute(
+        insert_stmt,
+        [s.to_dict() for s in statuses]
+    )
 
 
 def insert_messages(messages):
     """
     Insert chat messages into the database.
 
-    @param messages - a list of chat messages
-    @type messages - list of L{parser.Messages} objects.
+    @param messages: a list of chat messages
+    @type messages: list of L{parser.Messages} objects.
 
     @returns - None
     """
-    to_db = []
-    for m in messages:
-        parsed = dict(
-            id=m.msg_id,
-            from_id=m.recv_from,
-            site_id=m.site_id,
-            type=m.msg_type,
-            status=m.status,
-            timestamp=m.timestamp
-        )
-        to_db.append(parsed)
     insert_stmt = Messages.insert(
         prefixes=['OR IGNORE']
     )
-    engine.execute(insert_stmt, to_db)
+    engine.execute(
+        insert_stmt,
+        [m.to_dict() for m in messages]
+    )
 
 
 def read_file(fname):
