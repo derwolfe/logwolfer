@@ -20,8 +20,8 @@ from sqlalchemy import (
 from datetime import datetime
 
 # the tables
-connectionString = "sqlite:///"
-engine = create_engine(connectionString + "chat_logs.db", echo=True)
+connection_string = "sqlite:///chat_logs.db"
+engine = create_engine(connection_string , echo=True)
 metadata = MetaData(bind=engine)
 
 # make sure duplicates are ignored!
