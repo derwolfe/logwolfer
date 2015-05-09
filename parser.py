@@ -163,11 +163,10 @@ def insert_statuses(statuses):
             status=s.status,
             timestamp=s.timestamp
         )
-        to_db.append(parsed)
-    insert_stmt = Statuses.insert(
-        prefixes=['OR IGNORE']
-    ).values(to_db)
-    engine.execute(insert_stmt)
+        insert_stmt = Statuses.insert(
+            prefixes=['OR IGNORE']
+        ).values(parsed)
+        engine.execute(insert_stmt)
 
 
 def insert_messages(messages):
@@ -189,7 +188,7 @@ def insert_messages(messages):
             status=m.status,
             timestamp=m.timestamp
         )
-        #to_db.append(parsed)
+        to_db.append(parsed)
         insert_stmt = Messages.insert(
             prefixes=['OR IGNORE']
         ).values(parsed)
