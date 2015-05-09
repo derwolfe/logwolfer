@@ -165,10 +165,11 @@ def insert_statuses(statuses):
             status=s.status,
             timestamp=s.timestamp
         )
-        insert_stmt = Statuses.insert(
-            prefixes=['OR IGNORE']
-        ).values(parsed)
-        engine.execute(insert_stmt)
+        to_db.append(parsed)
+    insert_stmt = Statuses.insert(
+        prefixes=['OR IGNORE']
+    )
+    engine.execute(insert_stmt, to_db)
 
 
 def insert_messages(messages):
@@ -193,8 +194,8 @@ def insert_messages(messages):
         to_db.append(parsed)
     insert_stmt = Messages.insert(
         prefixes=['OR IGNORE']
-    ).values(to_db)
-    engine.execute(insert_stmt)
+    )
+    engine.execute(insert_stmt, to_db)
 
 
 def read_file(fname):
