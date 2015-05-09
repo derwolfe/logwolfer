@@ -221,23 +221,5 @@ def read_file(fname):
         insert_statuses(statuses)
         insert_messages(messages)
 
-## read over the log, insert in batches of 10k
-## then run a select query over the results.
-
-
-# if it is by query, you will need to order the results by their timestamps
-# to know which window they used (i.e. email or chat).
-# soln: make a message table, a status table, and a email/chat table
-# when you are finished reading the messages and status, begin to add
-# records to the email_chat table, basically jsaying "message 12312 is chat"
-# then run join/sum on that table to get the results.
-
-# create a database
-
-# read the lines from the log into the database
-#    only insert if PK doesn't already exist.
-# Every unique message will also have a unique timestamp.
-# you can do an insert and then ignore duplicates
-
 
 # query the database with select ... group by...msg
