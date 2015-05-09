@@ -17,6 +17,40 @@ from sqlalchemy import (
     create_engine
 )
 
+# the tables
+connectionString = "sqlite:///"
+engine = create_engine(connectionString + "chat_logs.db", echo=True)
+metadata = MetaData(bind=engine)
+messages = Table(
+    "messages", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("from_id", String, nullable=False),
+    Column("site_id", Integer, nullable=False),
+    Column("type", String, nullable=False),
+    Column("status", String, nullable=False),
+    Column("timestamp", DateTime, nullable=False)
+)
+
+statuses = Table(
+    "statuses", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("from_id", String, nullable=False),
+    Column("site_id", Integer, nullable=False),
+    Column("type", String, nullable=False),
+    Column("online", Boolean, nullable=False),
+    Column("timestamp", DateTime, nullable=False)
+
+)
+
+email_or_chats = Table(
+    "email_or_chats", metadata,
+    Column("id", Integer, ForeignKey("messages.id"), primary_key=True),
+    Column("email", Boolean, nullable=False),
+    Column("chat", Boolean, nullable=False)
+)
+
+metadata.create_all()
+
 
 class Message(object):
     """
