@@ -140,37 +140,63 @@ def parse_line(line):
             timestamp=msg["timestamp"]
         )
 
-# the tables
-connectionString = "sqlite:///"
-engine = create_engine(connectionString + "chat_logs.db", echo=True)
-metadata = MetaData(bind=engine)
-messages = Table(
-    "messages", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("from", String, nullable=False),
-    Column("site_id", Integer, nullable=False),
-    Column("type", String, nullable=False),
-    Column("status", String, nullable=False),
-    Column("timestamp", DateTime, nullable=False)
-)
+def _insert(values, table):
+    table.insert().values(values)
 
-statuses = Table(
-    "statuses", metadata,
-    Column("id", Integer, primary_key=True),
-    Column("from", String, nullable=False),
-    Column("site_id", Integer, nullable=False),
-    Column("type", String, nullable=False),
-    Column("online", Boolean, nullable=False),
-    Column("timestamp", DateTime, nullable=False)
 
-)
-email_or_chats = Table(
-    "email_or_chat", metadata,
-    Column("id", Integer, ForeignKey("messages.id"), primary_key=True),
-    Column("email", Boolean, nullable=False),
-    Column("chat", Boolean, nullable=False)
-)
-metadata.create_all()
+def insert_statuses(statuses):
+    """
+    Insert status messages into the database.
+
+    @param statuses - a list of status messages
+    @type statuses - list of L{parser.Status} objects.
+
+    @returns - None
+    """
+
+
+def insert_messages(messages):
+    """
+    Insert chat messages into the database.
+
+    @param messages - a list of chat messages
+    @type messages - list of L{parser.Messages} objects.
+
+    @returns - None
+    """
+
+
+# read file in batches
+# write to database in batches
+
+def read_file(fname):
+    statuses = []
+    messages = []
+    insert_when = 10000
+    with open(fname, 'rb') as f:
+        for line in f:
+
+            # parsing
+            line_type, parsed = parse_line(line)
+            if line_type == 'status':
+                statuses.append(parsed)
+            elif line_type == 'message':
+                messages.append(parsed)
+
+            # db calls
+            if len(statuses) == insert_when:
+                insert_statuses(statuses)
+                statuses = []
+            elif len(messages) == insert_when:
+                insert_messages(messages)
+                messages = []
+
+        # insert the remaining records
+        insert_statuses(statuses)
+        insert_messages(messages)
+
+## read over the log, insert in batches of 10k
+## then run a select query over the results.
 
 
 # if it is by query, you will need to order the results by their timestamps
