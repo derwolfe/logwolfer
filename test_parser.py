@@ -95,9 +95,13 @@ class TestParseMessage(TestCase):
             self.parsed.timestamp
         )
 
+
 class TestInsertMessages(TestCase):
 
     def setUp(self):
+        # tear down and recreate db for each test!
+        parser.connection_string = "sqlite://"
+        parser.build_db(parser.metadata)
         self.msg = parser.Message(
             msg_id=1,
             recv_from=1,
