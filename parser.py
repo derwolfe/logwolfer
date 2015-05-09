@@ -76,13 +76,13 @@ class Status(object):
     A status message that states whether or not a given site is online.
     """
     def __init__(self,
-                 msg_id,
+                 status_id,
                  recv_from,
                  site_id,
                  msg_type,
                  status,
                  timestamp):
-        self.msg_id = msg_id
+        self.status_id = status_id
         self.recv_from = recv_from
         self.site_id = site_id
         self.msg_type = msg_type
@@ -122,7 +122,7 @@ def parse_line(line):
     """
     msg = json.loads(line)
     if msg["type"] == u"message":
-        return Message(
+        return 'message', Message(
             msg_id=msg["id"],
             recv_from=msg["from"],
             site_id=msg["site_id"],
@@ -131,8 +131,8 @@ def parse_line(line):
             timestamp=msg["timestamp"]
         )
     else:
-        return Status(
-            msg_id=msg["id"],
+        return 'status', Status(
+            status_id=msg["id"],
             recv_from=msg["from"],
             site_id=msg["site_id"],
             msg_type=msg["type"],

@@ -30,7 +30,7 @@ class TestParseStatus(TestCase):
         self.assertEqual('status', self.msg_type)
 
     def test_parsesMsgId(self):
-        self.assertEqual(self.msg["id"], self.parsed.msg_id)
+        self.assertEqual(self.msg["id"], self.parsed.status_id)
 
     def test_parsesRecvFrom(self):
         self.assertEqual(self.msg["from"], self.parsed.recv_from)
