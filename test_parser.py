@@ -108,11 +108,9 @@ class TestInsertMessages(TestCase):
         )
 
     def test_doesNotInsertDuplicates(self):
-        parser.insert_messages([self.msg, self.msg])
-        conn = parser.engine.raw_connection()
-        cursor = conn.cursor("select count(*) from messages;")
-        results = cursor.fetchall()
-        print results
+        parser.insert_messages([self.msg, self.msg, self.msg])
+        result = parser.engine.execute("select count(*) as ct from messages;")
+        self.assertEqual(1, result.scalar())
 
 
 if __name__ == '__main__':
