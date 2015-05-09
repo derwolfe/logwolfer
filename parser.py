@@ -17,6 +17,8 @@ from sqlalchemy import (
     create_engine
 )
 
+from datetime import datetime
+
 # the tables
 connectionString = "sqlite:///"
 engine = create_engine(connectionString + "chat_logs.db", echo=True)
@@ -70,7 +72,7 @@ class Message(object):
         self.site_id = site_id
         self.msg_type = msg_type
         self.status = status
-        self.timestamp = timestamp
+        self.timestamp = datetime.fromtimestamp(timestamp)
 
 
 class Status(object):
@@ -89,7 +91,7 @@ class Status(object):
         self.site_id = site_id
         self.msg_type = msg_type
         self.online = Status.is_online(status)
-        self.timestamp = timestamp
+        self.timestamp = datetime.fromtimestamp(timestamp)
 
     @staticmethod
     def is_online(status):
