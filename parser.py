@@ -146,7 +146,7 @@ def parse_line(line):
 
 def insert_statuses(statuses):
     """
-    Insert status messages into the database.
+    Insert status messages into the database. Will not insert duplicates.
 
     @param statuses - a list of status messages
     @type statuses - list of L{parser.Status} objects.
@@ -165,7 +165,7 @@ def insert_statuses(statuses):
         )
         to_db.append(parsed)
     insert_stmt = Statuses.insert(
-        prefixes=['ON CONFLICT IGNORE']
+        prefixes=['OR IGNORE']
     ).values(to_db)
     engine.execute(insert_stmt)
 
@@ -189,17 +189,17 @@ def insert_messages(messages):
             status=m.status,
             timestamp=m.timestamp
         )
-        to_db.append(parsed)
-    insert_stmt = Messages.insert(
-        prefixes=['ON CONFLICT IGNORE']
-    ).values(to_db)
-    engine.execute(insert_stmt)
+        #to_db.append(parsed)
+        insert_stmt = Messages.insert(
+            prefixes=['OR IGNORE']
+        ).values(parsed)
+        engine.execute(insert_stmt)
 
 
 def read_file(fname):
     statuses = []
     messages = []
-    insert_when = 10000
+    insert_when = 500
     with open(fname, 'rb') as f:
         for line in f:
             line_type, parsed = parse_line(line)

@@ -5,6 +5,7 @@ Tests for the parser module.
 from __future__ import absolute_import
 from unittest import TestCase, main as testmain
 
+from datetime import datetime
 import json
 
 import parser
@@ -45,7 +46,10 @@ class TestParseStatus(TestCase):
         self.assertTrue(self.parsed.online)
 
     def test_parsesTimestamp(self):
-        self.assertEqual(self.msg["timestamp"], self.parsed.timestamp)
+        self.assertEqual(
+            datetime.fromtimestamp(self.msg["timestamp"]),
+            self.parsed.timestamp
+        )
 
     def test_is_online(self):
         self.assertTrue(parser.Status.is_online("online"))
@@ -86,7 +90,29 @@ class TestParseMessage(TestCase):
         self.assertEqual(self.msg["data"]["message"], self.parsed.status)
 
     def test_parsesTimestamp(self):
-        self.assertEqual(self.msg["timestamp"], self.parsed.timestamp)
+        self.assertEqual(
+            datetime.fromtimestamp(self.msg["timestamp"]),
+            self.parsed.timestamp
+        )
+
+class TestInsertMessages(TestCase):
+
+    def setUp(self):
+        self.msg = parser.Message(
+            msg_id=1,
+            recv_from=1,
+            site_id=1,
+            msg_type='message',
+            status="stuff",
+            timestamp=1429026448
+        )
+
+    def test_doesNotInsertDuplicates(self):
+        parser.insert_messages([self.msg, self.msg])
+        conn = parser.engine.raw_connection()
+        cursor = conn.cursor("select count(*) from messages;")
+        results = cursor.fetchall()
+        print results
 
 
 if __name__ == '__main__':
