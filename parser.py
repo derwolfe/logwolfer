@@ -191,10 +191,10 @@ def insert_messages(messages):
             timestamp=m.timestamp
         )
         to_db.append(parsed)
-        insert_stmt = Messages.insert(
-            prefixes=['OR IGNORE']
-        ).values(parsed)
-        engine.execute(insert_stmt)
+    insert_stmt = Messages.insert(
+        prefixes=['OR IGNORE']
+    ).values(to_db)
+    engine.execute(insert_stmt)
 
 
 def read_file(fname):
@@ -224,3 +224,8 @@ def read_file(fname):
 
 
 # query the database with select ... group by...msg
+
+if __name__ == '__main__':
+    import sys
+    build_db(metadata)
+    read_file(sys.argv[:1])
