@@ -21,28 +21,30 @@ from sqlalchemy import (
 connectionString = "sqlite:///"
 engine = create_engine(connectionString + "chat_logs.db", echo=True)
 metadata = MetaData(bind=engine)
-messages = Table(
+
+# make sure duplicates are ignored!
+Messages = Table(
     "messages", metadata,
-    Column("id", Integer, primary_key=True),
+    Column("id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("type", String, nullable=False),
     Column("status", String, nullable=False),
-    Column("timestamp", DateTime, nullable=False)
+    Column("timestamp", DateTime, nullable=False),
 )
 
-statuses = Table(
+# make sure duplicates are ignored!
+Statuses = Table(
     "statuses", metadata,
-    Column("id", Integer, primary_key=True),
+    Column("id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("type", String, nullable=False),
     Column("online", Boolean, nullable=False),
-    Column("timestamp", DateTime, nullable=False)
-
+    Column("timestamp", DateTime, nullable=False),
 )
 
-email_or_chats = Table(
+Email_or_chats = Table(
     "email_or_chats", metadata,
     Column("id", Integer, ForeignKey("messages.id"), primary_key=True),
     Column("email", Boolean, nullable=False),
@@ -140,10 +142,6 @@ def parse_line(line):
             timestamp=msg["timestamp"]
         )
 
-def _insert(values, table):
-    table.insert().values(values)
-
-
 def insert_statuses(statuses):
     """
     Insert status messages into the database.
@@ -153,6 +151,21 @@ def insert_statuses(statuses):
 
     @returns - None
     """
+    to_db = []
+    for s in statuses:
+        parsed = dict(
+            id=s.status_id,
+            from_id=s.recv_from,
+            site_id=s.site_id,
+            type=s.msg_type,
+            status=s.status,
+            timestamp=s.timestamp
+        )
+        to_db.append(parsed)
+    insert_stmt = Statuses.insert(
+        prefixes=['ON CONFLICT IGNORE']
+    ).values(to_db)
+    engine.execute(insert_stmt)
 
 
 def insert_messages(messages):
@@ -164,10 +177,22 @@ def insert_messages(messages):
 
     @returns - None
     """
+    to_db = []
+    for m in messages:
+        parsed = dict(
+            id=m.msg_id,
+            from_id=m.recv_from,
+            site_id=m.site_id,
+            type=m.msg_type,
+            status=m.status,
+            timestamp=m.timestamp
+        )
+        to_db.append(parsed)
+    insert_stmt = Messages.insert(
+        prefixes=['ON CONFLICT IGNORE']
+    ).values(to_db)
+    engine.execute(insert_stmt)
 
-
-# read file in batches
-# write to database in batches
 
 def read_file(fname):
     statuses = []
@@ -175,9 +200,8 @@ def read_file(fname):
     insert_when = 10000
     with open(fname, 'rb') as f:
         for line in f:
-
-            # parsing
             line_type, parsed = parse_line(line)
+
             if line_type == 'status':
                 statuses.append(parsed)
             elif line_type == 'message':
