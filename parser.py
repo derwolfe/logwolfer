@@ -53,7 +53,9 @@ Email_or_chats = Table(
     Column("chat", Boolean, nullable=False)
 )
 
-metadata.create_all()
+
+def build_db(metadata):
+    metadata.create_all()
 
 
 class Message(object):
