@@ -14,6 +14,7 @@ from sqlalchemy import (
     ForeignKey,
     MetaData,
     Table,
+    UniqueConstraint,
     create_engine
 )
 
@@ -28,6 +29,7 @@ Messages = Table(
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("timestamp", DateTime, nullable=False),
+    UniqueConstraint('system_id', 'timestamp', name='u_system_id_timestamp')
 )
 
 Statuses = Table(
@@ -37,14 +39,15 @@ Statuses = Table(
     Column("site_id", Integer, nullable=False),
     Column("status", Boolean, nullable=False),
     Column("timestamp", DateTime, nullable=False),
+    UniqueConstraint('system_id', 'timestamp', name='u_system_id_timestamp')
 )
 
-# Email_or_chats = Table(
-#     "email_or_chats", metadata,
-#     Column("system_id", Integer, ForeignKey("messages.system_id"), primary_key=True),
-#     Column("email", Boolean, nullable=False),
-#     Column("chat", Boolean, nullable=False)
-# )
+Email_or_chats = Table(
+    "email_or_chats", metadata,
+    Column("system_id", Integer, ForeignKey("messages.system_id"), primary_key=True),
+    Column("email", Boolean, nullable=False),
+    Column("chat", Boolean, nullable=False)
+)
 
 
 def engine_factory(connection_string):
@@ -151,7 +154,7 @@ def insert_messages(messages, engine):
     @returns - None
     """
     insert_stmt = Messages.insert(
-        prefixes=['OR IGNORE']
+        prefixes=["OR IGNORE"]
     )
     engine.execute(
         insert_stmt,
@@ -163,13 +166,13 @@ def read_file(fname, engine):
     statuses = []
     messages = []
     insert_when = 500
-    with open(fname, 'rb') as f:
+    with open(fname, "rb") as f:
         for line in f:
             line_type, parsed = parse_line(line)
 
-            if line_type == 'status':
+            if line_type == "status":
                 statuses.append(parsed)
-            elif line_type == 'message':
+            elif line_type == "message":
                 messages.append(parsed)
 
             # db calls
@@ -187,8 +190,8 @@ def read_file(fname, engine):
 
 # query the database with select ... group by...msg
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
-    engine = engine_factory('sqlite:///chat-logs.db')
+    engine = engine_factory("sqlite:///chat-logs.db")
     build_db(metadata, engine)
     read_file(sys.argv[:1])
