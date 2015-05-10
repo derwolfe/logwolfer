@@ -143,5 +143,16 @@ class TestInsertStatuses(TestCase):
         self.assertEqual(1, result.scalar())
 
 
+class TestBuildIndices(TestCase):
+
+    def setUp(self):
+        self.engine = parser.engine_factory("sqlite://")
+        parser.build_db(parser.metadata, self.engine)
+        parser.build_indices(self.engine))
+
+    def test_build_indices(self):
+        pass
+
+
 if __name__ == "__main__":
     testmain()

@@ -8,6 +8,7 @@ import json
 from sqlalchemy import (
     Column,
     Integer,
+    Index,
     DateTime,
     Text,
     Boolean,
@@ -15,7 +16,10 @@ from sqlalchemy import (
     MetaData,
     Table,
     UniqueConstraint,
-    create_engine
+    create_engine,
+    select,
+    union,
+    sql
 )
 
 from datetime import datetime
@@ -43,6 +47,11 @@ Statuses = Table(
     Column("status", Boolean, nullable=False),
     Column("timestamp", DateTime, nullable=False),
     UniqueConstraint('system_id', 'timestamp', name='u_system_id_timestamp')
+)
+
+Sites = Table(
+    "sites", metadata,
+    Column("site_id", Integer, primary_key=True, autoincrement=False)
 )
 
 # Email_or_chats = Table(
@@ -202,9 +211,68 @@ def read_file(fname, engine):
         logging.info("final writes")
 
 
+def build_indices(engine):
+    """
+    Build indexes on the data in the database and populate the sites
+    table.
+
+    This is meant to be run __after__ the data has been inserted into the db.
+
+    @param engine: a sqlalchemy engine capable of talking to the database that
+        already has been loaded with data.
+    @type engine: a L{sqlalchemy.engine} object
+    """
+    msg_index = Index("message_site_id_idx", Messages.c.site_id)
+    status_index = Index("status_site_id_idx", Statuses.c.site_id)
+    msg_index.create(engine)
+    status_index.create(engine)
+
+def build_sites(engine):
+    """
+    With the logs loaded, build a table containing all of the site_ids.
+    """
+    Sites.create(engine, checkfirst=True)
+    sql = """
+INSERT INTO sites (site_id)
+SELECT site_id
+FROM (
+    SELECT distinct site_id FROM messages
+    UNION ALL
+    SELECT distinct site_id FROM statuses
+)
+GROUP BY site_id
+"""
+    engine.execute(sql)
+
+
+def bucket_messages(engine):
+    """
+    Bucket the messages in the L{parser.Messages} table into a new table
+    that states whether or not these messages were made online or offline.
+    """
+    pass
+
+
+def build_results(engine):
+    """
+    Build a summary of activity for each site in the logs. If no prior online
+    status is found for a given site, that site can be assumed to be offline.
+
+    Sum the total messages, emails, unique operators, and unique visitors to
+    the site.
+
+    Results should be of the format:
+
+    123,messages=1,emails=0,operators=1,visitors=2
+    124,messages=2,emails=1,operators=4,visitors=1
+    """
+    pass
+
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.INFO)
     engine = engine_factory("sqlite:///chat-logs.db")
-    build_db(metadata, engine)
-    read_file(sys.argv[-1], engine)
+    #build_db(metadata, engine)
+    #read_file(sys.argv[-1], engine)
+    #build_indices(engine)
+    build_sites(engine)
