@@ -54,7 +54,8 @@ Email_or_chats = Table(
 
 
 def engine_factory(connection_string):
-    return create_engine(connection_string , echo=False)
+    return create_engine(connection_string, echo=False)
+
 
 def build_db(metadata, engine):
     metadata.bind = engine
@@ -63,6 +64,7 @@ def build_db(metadata, engine):
 
 def is_online(status):
     return status == u"online"
+
 
 def parse_message(msg_id, from_id, site_id, timestamp):
     return dict(
@@ -74,6 +76,7 @@ def parse_message(msg_id, from_id, site_id, timestamp):
         )
     )
 
+
 def parse_status(status_id, from_id, site_id, status, timestamp):
     return dict(
         system_id=status_id,
@@ -82,7 +85,7 @@ def parse_status(status_id, from_id, site_id, status, timestamp):
         status=is_online(
             status
         ),
-        timestamp= datetime.fromtimestamp(
+        timestamp=datetime.fromtimestamp(
             timestamp
         )
     )
@@ -128,6 +131,7 @@ def parse_line(line):
             status=msg["data"]["status"],
             timestamp=msg["timestamp"]
         )
+
 
 def insert_statuses(statuses, engine):
     """

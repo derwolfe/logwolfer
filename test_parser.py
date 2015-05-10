@@ -15,21 +15,21 @@ class TestParseStatus(TestCase):
 
     def setUp(self):
         self.msg = {
-            "id":"53367bc7-e2cf-11e4-81da-56847afe9799",
-            "from":"operator1",
-            "site_id":"123",
-            "type":"status",
-            "data":{
-                "status":"online",
+            "id": "53367bc7-e2cf-11e4-81da-56847afe9799",
+            "from": "operator1",
+            "site_id": "123",
+            "type": "status",
+            "data": {
+                "status": "online",
             },
-            "timestamp":1429026448
+            "timestamp": 1429026448
         }
 
         self.msg_type, self.parsed = parser.parse_line(
             json.dumps(self.msg)
         )
 
-    def test_parsesMsgId(self):
+    def test_parsesMsgType(self):
         self.assertEqual("status", self.msg_type)
 
     def test_parsesMsgId(self):
@@ -68,14 +68,14 @@ class TestParseMessage(TestCase):
 
     def setUp(self):
         self.msg = {
-            "id":"45094d07-e2cf-11e4-9454-56847afe9799",
-            "from":"visitor5",
-            "type":"message",
-            "site_id":"123",
-            "data":{
-                "message":"Hi, how's it going",
+            "id": "45094d07-e2cf-11e4-9454-56847afe9799",
+            "from": "visitor5",
+            "type": "message",
+            "site_id": "123",
+            "data": {
+                "message": "Hi, how's it going",
             },
-            "timestamp":1429026445,
+            "timestamp": 1429026445,
         }
         self.msg_type, self.parsed = parser.parse_line(json.dumps(self.msg))
 
@@ -118,7 +118,7 @@ class TestInsertMessages(TestCase):
         )
 
     def test_doesNotInsertDuplicates(self):
-        parser.insert_messages([self.msg, self.msg, self.msg], self.engine)
+        parser.insert_messages([self.msg, self.msg], self.engine)
         result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
@@ -138,7 +138,7 @@ class TestInsertStatuses(TestCase):
         )
 
     def test_doesNotInsertDuplicates(self):
-        parser.insert_statuses([self.status, self.status, self.status], self.engine)
+        parser.insert_statuses([self.status, self.status], self.engine)
         result = self.engine.execute("select count(*) as ct from statuses;")
         self.assertEqual(1, result.scalar())
 
