@@ -19,9 +19,7 @@ from sqlalchemy import (
 
 from datetime import datetime
 
-# the tables
-connection_string = "sqlite:///chat_logs.db"
-engine = create_engine(connection_string , echo=True)
+
 metadata = MetaData()
 
 # make sure duplicates are ignored!
@@ -52,6 +50,7 @@ Email_or_chats = Table(
     Column("email", Boolean, nullable=False),
     Column("chat", Boolean, nullable=False)
 )
+
 
 def engine_factory(connection_string):
     return create_engine(connection_string , echo=True)
