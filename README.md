@@ -28,14 +28,17 @@ Benchmarks
 
 ### Reading the big_input.gz data file into the system.
 
-#### cpython2.7.3 with 384 mb ram
+#### cpython2.7.3 @ 2048 mb ram
+- real:	24m16.494s
+- user:	0m25.290s
+- sys:	7m18.507s
 
-- real:	24m4.440s
-- user:	0m28.826s
-- sys: 7m42.293s
+#### PyPy-2.5.1 @ 2048 mb ram
+- real:	23m41.414s
+- user:	0m16.173s
+- sys:	7m38.157s
 
-#### PyPy-2.5.1 with 384 mb ram
-
-- real:	27m57.182s
-- user:	0m29.818s
-- sys: 10m1.050s
+<!-- |Python|Real|User|Sys| -->
+<!-- |---|---|---|---|---| -->
+<!-- |CPython2.7.3|24m16.494s|0m25.290s|7m18.507s| -->
+<!-- |PyPy2.5.1|23m41.414s|0m16.173s|7m38.157s| -->
