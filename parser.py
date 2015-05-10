@@ -20,6 +20,9 @@ from sqlalchemy import (
 
 from datetime import datetime
 
+import logging
+import gzip
+
 
 metadata = MetaData()
 
@@ -135,6 +138,7 @@ def insert_statuses(statuses, engine):
 
     @returns - None
     """
+    logging.info("writing statuses")
     insert_stmt = Statuses.insert(
         prefixes=['OR IGNORE']
     )
@@ -153,6 +157,7 @@ def insert_messages(messages, engine):
 
     @returns - None
     """
+    logging.info("writing messages")
     insert_stmt = Messages.insert(
         prefixes=["OR IGNORE"]
     )
@@ -165,8 +170,11 @@ def insert_messages(messages, engine):
 def read_file(fname, engine):
     statuses = []
     messages = []
-    insert_when = 500
-    with open(fname, 'r') as f:
+    insert_when = 5000
+
+    logging.info("starting to read file")
+
+    with gzip.open(fname, 'r') as f:
         for line in f:
             line_type, parsed = parse_line(line)
 
@@ -186,12 +194,12 @@ def read_file(fname, engine):
         # insert the remaining records
         insert_statuses(statuses, engine)
         insert_messages(messages, engine)
+        logging.info("final writes")
 
-
-# query the database with select ... group by...msg
 
 if __name__ == "__main__":
     import sys
+    logging.basicConfig(level=logging.INFO)
     engine = engine_factory("sqlite:///chat-logs.db")
     build_db(metadata, engine)
     read_file(sys.argv[-1], engine)
