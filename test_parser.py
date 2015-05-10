@@ -30,7 +30,7 @@ class TestParseStatus(TestCase):
         )
 
     def test_parsesMsgId(self):
-        self.assertEqual('status', self.msg_type)
+        self.assertEqual("status", self.msg_type)
 
     def test_parsesMsgId(self):
         self.assertEqual(self.msg["id"], self.parsed["system_id"])
@@ -71,7 +71,7 @@ class TestParseMessage(TestCase):
         self.msg_type, self.parsed = parser.parse_line(json.dumps(self.msg))
 
     def test_parsesMsgType(self):
-        self.assertEqual('message', self.msg_type)
+        self.assertEqual("message", self.msg_type)
 
     def test_parsesMsgId(self):
         self.assertEqual(
@@ -98,7 +98,7 @@ class TestParseMessage(TestCase):
 class TestInsertMessages(TestCase):
 
     def setUp(self):
-        self.engine = parser.engine_factory('sqlite://')
+        self.engine = parser.engine_factory("sqlite://")
         parser.build_db(parser.metadata, self.engine)
 
         self.msg = parser.parse_message(
@@ -116,7 +116,7 @@ class TestInsertMessages(TestCase):
 class TestInsertStatuses(TestCase):
 
     def setUp(self):
-        self.engine = parser.engine_factory('sqlite://')
+        self.engine = parser.engine_factory("sqlite://")
         parser.build_db(parser.metadata, self.engine)
 
         self.status = parser.parse_status(
@@ -132,5 +132,5 @@ class TestInsertStatuses(TestCase):
         result = self.engine.execute("select count(*) as ct from statuses;")
         self.assertEqual(1, result.scalar())
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     testmain()

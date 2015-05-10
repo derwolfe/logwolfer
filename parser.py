@@ -22,7 +22,6 @@ from datetime import datetime
 
 metadata = MetaData()
 
-# make sure duplicates are ignored!
 Messages = Table(
     "messages", metadata,
     Column("system_id", Integer, primary_key=True, autoincrement=False),
@@ -31,7 +30,6 @@ Messages = Table(
     Column("timestamp", DateTime, nullable=False),
 )
 
-# make sure duplicates are ignored!
 Statuses = Table(
     "statuses", metadata,
     Column("system_id", Integer, primary_key=True, autoincrement=False),
