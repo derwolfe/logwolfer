@@ -28,7 +28,6 @@ Messages = Table(
     Column("system_id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
-    Column("type", String, nullable=False),
     Column("status", String, nullable=False),
     Column("timestamp", DateTime, nullable=False),
 )
@@ -39,7 +38,6 @@ Statuses = Table(
     Column("system_id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
-    Column("type", String, nullable=False),
     Column("online", Boolean, nullable=False),
     Column("timestamp", DateTime, nullable=False),
 )
@@ -60,13 +58,11 @@ def build_db(metadata, engine):
     metadata.create_all()
 
 
-def parse_message(msg_id, recv_from, site_id,
-                  msg_type, status, timestamp):
+def parse_message(msg_id, recv_from, site_id, status, timestamp):
     return dict(
         system_id=msg_id,
         from_id=recv_from,
         site_id=site_id,
-        type=msg_type,
         status=status,
         timestamp=datetime.fromtimestamp(
             timestamp
@@ -76,13 +72,11 @@ def parse_message(msg_id, recv_from, site_id,
 def is_online(status):
     return status == u"online"
 
-def parse_status(status_id, recv_from, site_id,
-                 msg_type, status, timestamp):
+def parse_status(status_id, recv_from, site_id, status, timestamp):
     return dict(
         system_id=status_id,
         from_id=recv_from,
         site_id=site_id,
-        type=msg_type,
         status=is_online(
             status
         ),
@@ -122,7 +116,6 @@ def parse_line(line):
             msg_id=msg["id"],
             recv_from=msg["from"],
             site_id=msg["site_id"],
-            msg_type=msg["type"],
             status=msg["data"]["message"],
             timestamp=msg["timestamp"]
         )
@@ -131,7 +124,6 @@ def parse_line(line):
             status_id=msg["id"],
             recv_from=msg["from"],
             site_id=msg["site_id"],
-            msg_type=msg["type"],
             status=msg["data"]["status"],
             timestamp=msg["timestamp"]
         )

@@ -31,7 +31,7 @@ class TestParseStatus(TestCase):
         self.assertEqual('status', self.msg_type)
 
     def test_parsesMsgId(self):
-        self.assertEqual(self.msg["id"], self.parsed.status_id)
+        self.assertEqual(self.msg["id"], self.parsed["system_id"])
 
     def test_parsesRecvFrom(self):
         self.assertEqual(self.msg["from"], self.parsed.recv_from)
@@ -116,7 +116,6 @@ class TestInsertMessages(TestCase):
             msg_id=1,
             recv_from=1,
             site_id=1,
-            msg_type='message',
             status="stuff",
             timestamp=1429026448
         )
