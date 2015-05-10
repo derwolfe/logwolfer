@@ -9,7 +9,7 @@ from sqlalchemy import (
     Column,
     Integer,
     DateTime,
-    String,
+    Text,
     Boolean,
     ForeignKey,
     MetaData,
@@ -25,8 +25,8 @@ metadata = MetaData()
 
 Messages = Table(
     "messages", metadata,
-    Column("system_id", Integer, primary_key=True, autoincrement=False),
-    Column("from_id", String, nullable=False),
+    Column("system_id", Text, primary_key=True, autoincrement=False),
+    Column("from_id", Text, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("timestamp", DateTime, nullable=False),
     UniqueConstraint('system_id', 'timestamp', name='u_system_id_timestamp')
@@ -34,8 +34,8 @@ Messages = Table(
 
 Statuses = Table(
     "statuses", metadata,
-    Column("system_id", Integer, primary_key=True, autoincrement=False),
-    Column("from_id", String, nullable=False),
+    Column("system_id", Text, primary_key=True, autoincrement=False),
+    Column("from_id", Text, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("status", Boolean, nullable=False),
     Column("timestamp", DateTime, nullable=False),
@@ -58,24 +58,24 @@ def build_db(metadata, engine):
     metadata.create_all()
 
 
+def is_online(status):
+    return status == u"online"
+
 def parse_message(msg_id, from_id, site_id, timestamp):
     return dict(
         system_id=msg_id,
         from_id=from_id,
-        site_id=site_id,
+        site_id=int(site_id),
         timestamp=datetime.fromtimestamp(
             timestamp
         )
     )
 
-def is_online(status):
-    return status == u"online"
-
 def parse_status(status_id, from_id, site_id, status, timestamp):
     return dict(
         system_id=status_id,
         from_id=from_id,
-        site_id=site_id,
+        site_id=int(site_id),
         status=is_online(
             status
         ),

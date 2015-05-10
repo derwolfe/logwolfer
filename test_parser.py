@@ -33,13 +33,22 @@ class TestParseStatus(TestCase):
         self.assertEqual("status", self.msg_type)
 
     def test_parsesMsgId(self):
-        self.assertEqual(self.msg["id"], self.parsed["system_id"])
+        self.assertEqual(
+            self.msg["id"],
+            self.parsed["system_id"]
+        )
 
     def test_parsesRecvFrom(self):
-        self.assertEqual(self.msg["from"], self.parsed["from_id"])
+        self.assertEqual(
+            self.msg["from"],
+            self.parsed["from_id"]
+        )
 
     def test_parsesSiteId(self):
-        self.assertEqual(self.msg["site_id"], self.parsed["site_id"])
+        self.assertEqual(
+            int(self.msg["site_id"]),
+            self.parsed["site_id"]
+        )
 
     def test_parsesStatus(self):
         self.assertTrue(self.parsed["status"])
@@ -85,7 +94,7 @@ class TestParseMessage(TestCase):
 
     def test_parsesSiteId(self):
         self.assertEqual(
-            self.msg["site_id"], self.parsed["site_id"]
+            int(self.msg["site_id"]), self.parsed["site_id"]
         )
 
     def test_parsesTimestamp(self):
@@ -113,6 +122,7 @@ class TestInsertMessages(TestCase):
         result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
+
 class TestInsertStatuses(TestCase):
 
     def setUp(self):
@@ -131,6 +141,7 @@ class TestInsertStatuses(TestCase):
         parser.insert_statuses([self.status, self.status, self.status], self.engine)
         result = self.engine.execute("select count(*) as ct from statuses;")
         self.assertEqual(1, result.scalar())
+
 
 if __name__ == "__main__":
     testmain()
