@@ -25,7 +25,7 @@ metadata = MetaData()
 # make sure duplicates are ignored!
 Messages = Table(
     "messages", metadata,
-    Column("id", Integer, primary_key=True, autoincrement=False),
+    Column("system_id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("type", String, nullable=False),
@@ -36,7 +36,7 @@ Messages = Table(
 # make sure duplicates are ignored!
 Statuses = Table(
     "statuses", metadata,
-    Column("id", Integer, primary_key=True, autoincrement=False),
+    Column("system_id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
     Column("type", String, nullable=False),
@@ -44,12 +44,12 @@ Statuses = Table(
     Column("timestamp", DateTime, nullable=False),
 )
 
-Email_or_chats = Table(
-    "email_or_chats", metadata,
-    Column("id", Integer, ForeignKey("messages.id"), primary_key=True),
-    Column("email", Boolean, nullable=False),
-    Column("chat", Boolean, nullable=False)
-)
+# Email_or_chats = Table(
+#     "email_or_chats", metadata,
+#     Column("system_id", Integer, ForeignKey("messages.system_id"), primary_key=True),
+#     Column("email", Boolean, nullable=False),
+#     Column("chat", Boolean, nullable=False)
+# )
 
 
 def engine_factory(connection_string):
@@ -63,7 +63,7 @@ def build_db(metadata, engine):
 def parse_message(msg_id, recv_from, site_id,
                   msg_type, status, timestamp):
     return dict(
-        id=msg_id,
+        system_id=msg_id,
         from_id=recv_from,
         site_id=site_id,
         type=msg_type,
@@ -79,7 +79,7 @@ def is_online(status):
 def parse_status(status_id, recv_from, site_id,
                  msg_type, status, timestamp):
     return dict(
-        id=status_id,
+        system_id=status_id,
         from_id=recv_from,
         site_id=site_id,
         type=msg_type,
