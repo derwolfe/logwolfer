@@ -166,7 +166,7 @@ def read_file(fname, engine):
     statuses = []
     messages = []
     insert_when = 500
-    with open(fname, "rb") as f:
+    with open(fname, 'r') as f:
         for line in f:
             line_type, parsed = parse_line(line)
 
@@ -184,8 +184,8 @@ def read_file(fname, engine):
                 messages = []
 
         # insert the remaining records
-        insert_statuses(statuses)
-        insert_messages(messages)
+        insert_statuses(statuses, engine)
+        insert_messages(messages, engine)
 
 
 # query the database with select ... group by...msg
@@ -194,4 +194,4 @@ if __name__ == "__main__":
     import sys
     engine = engine_factory("sqlite:///chat-logs.db")
     build_db(metadata, engine)
-    read_file(sys.argv[:1])
+    read_file(sys.argv[-1], engine)
