@@ -2,7 +2,7 @@
 Tests for the parser module.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from unittest import TestCase, main as testmain
 
 from datetime import datetime
