@@ -53,7 +53,7 @@ Email_or_chats = Table(
 
 
 def engine_factory(connection_string):
-    return create_engine(connection_string , echo=True)
+    return create_engine(connection_string , echo=False)
 
 def build_db(metadata, engine):
     metadata.bind = engine

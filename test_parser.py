@@ -52,8 +52,8 @@ class TestParseStatus(TestCase):
         )
 
     def test_is_online(self):
-        self.assertTrue(parser.Status.is_online("online"))
-        self.assertFalse(parser.Status.is_online("offline"))
+        self.assertTrue(parser.is_online("online"))
+        self.assertFalse(parser.is_online("offline"))
 
 
 class TestParseMessage(TestCase):
