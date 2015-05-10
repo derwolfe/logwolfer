@@ -22,7 +22,7 @@ from datetime import datetime
 # the tables
 connection_string = "sqlite:///chat_logs.db"
 engine = create_engine(connection_string , echo=True)
-metadata = MetaData(bind=engine)
+metadata = MetaData()
 
 # make sure duplicates are ignored!
 Messages = Table(
@@ -53,74 +53,46 @@ Email_or_chats = Table(
     Column("chat", Boolean, nullable=False)
 )
 
+def engine_factory(connection_string):
+    return create_engine(connection_string , echo=True)
 
-def build_db(metadata):
+def build_db(metadata, engine):
+    metadata.bind = engine
     metadata.create_all()
 
-
-class Message(object):
-    """
-    A chat message intended for a site.
-    """
-    def __init__(self,
-                 msg_id,
-                 recv_from,
-                 site_id,
-                 msg_type,
-                 status,
-                 timestamp):
-        self.msg_id = msg_id
-        self.recv_from = recv_from
-        self.site_id = site_id
-        self.msg_type = msg_type
-        self.status = status
-        self.timestamp = datetime.fromtimestamp(timestamp)
-
-    def to_dict(self):
-        return dict(
-            id=self.msg_id,
-            from_id=self.recv_from,
-            site_id=self.site_id,
-            type=self.msg_type,
-            status=self.status,
-            timestamp=self.timestamp
+def parse_message(msg_id, recv_from, site_id,
+                  msg_type, status, timestamp):
+    return dict(
+        id=msg_id,
+        from_id=recv_from,
+        site_id=site_id,
+        type=msg_type,
+        status=status,
+        timestamp=datetime.fromtimestamp(
+            timestamp
         )
+    )
 
+def is_online(status):
+    if status == u"online":
+        return True
+    else:
+        return False
 
-class Status(object):
-    """
-    A status message that states whether or not a given site is online.
-    """
-    def __init__(self,
-                 status_id,
-                 recv_from,
-                 site_id,
-                 msg_type,
-                 status,
-                 timestamp):
-        self.status_id = status_id
-        self.recv_from = recv_from
-        self.site_id = site_id
-        self.msg_type = msg_type
-        self.online = Status.is_online(status)
-        self.timestamp = datetime.fromtimestamp(timestamp)
-
-    @staticmethod
-    def is_online(status):
-        if status == u"online":
-            return True
-        else:
-            return False
-
-    def to_dict(self):
-        return dict(
-            id=self.status_id,
-            from_id=self.recv_from,
-            site_id=self.site_id,
-            type=self.msg_type,
-            status=self.status,
-            timestamp=self.timestamp
+def parse_status(status_id, recv_from, site_id,
+                 msg_type, status, timestamp):
+    return dict(
+        id=status_id,
+        from_id=recv_from,
+        site_id=site_id,
+        type=msg_type,
+        status=is_online(
+            status
+        ),
+        timestamp= datetime.fromtimestamp(
+            timestamp
         )
+    )
 
 
 def parse_line(line):
@@ -148,7 +120,8 @@ def parse_line(line):
     """
     msg = json.loads(line)
     if msg["type"] == u"message":
-        return 'message', Message(
+        print( msg)
+        return 'message', parse_message(
             msg_id=msg["id"],
             recv_from=msg["from"],
             site_id=msg["site_id"],
@@ -157,7 +130,7 @@ def parse_line(line):
             timestamp=msg["timestamp"]
         )
     else:
-        return 'status', Status(
+        return 'status', parse_status(
             status_id=msg["id"],
             recv_from=msg["from"],
             site_id=msg["site_id"],
@@ -166,12 +139,12 @@ def parse_line(line):
             timestamp=msg["timestamp"]
         )
 
-def insert_statuses(statuses):
+def insert_statuses(statuses, engine):
     """
     Insert status messages into the database. Will not insert duplicates.
 
     @param statuses - a list of status messages
-    @type statuses - list of L{parser.Status} objects.
+    @type statuses - list of dictionaries
 
     @returns - None
     """
@@ -180,11 +153,11 @@ def insert_statuses(statuses):
     )
     engine.execute(
         insert_stmt,
-        [s.to_dict() for s in statuses]
+        statuses
     )
 
 
-def insert_messages(messages):
+def insert_messages(messages, engine):
     """
     Insert chat messages into the database.
 
@@ -198,11 +171,11 @@ def insert_messages(messages):
     )
     engine.execute(
         insert_stmt,
-        [m.to_dict() for m in messages]
+        messages
     )
 
 
-def read_file(fname):
+def read_file(fname, engine):
     statuses = []
     messages = []
     insert_when = 500
@@ -217,10 +190,10 @@ def read_file(fname):
 
             # db calls
             if len(statuses) == insert_when:
-                insert_statuses(statuses)
+                insert_statuses(statuses, engine)
                 statuses = []
             elif len(messages) == insert_when:
-                insert_messages(messages)
+                insert_messages(messages, engine)
                 messages = []
 
         # insert the remaining records

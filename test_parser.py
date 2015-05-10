@@ -100,9 +100,11 @@ class TestInsertMessages(TestCase):
 
     def setUp(self):
         # tear down and recreate db for each test!
-        parser.connection_string = "sqlite://"
-        parser.build_db(parser.metadata)
-        self.msg = parser.Message(
+        connection_string = 'sqlite://'
+        self.engine = parser.engine_factory(connection_string)
+        parser.build_db(parser.metadata, self.engine)
+
+        self.msg = parser.parse_message(
             msg_id=1,
             recv_from=1,
             site_id=1,
@@ -112,8 +114,8 @@ class TestInsertMessages(TestCase):
         )
 
     def test_doesNotInsertDuplicates(self):
-        parser.insert_messages([self.msg, self.msg, self.msg])
-        result = parser.engine.execute("select count(*) as ct from messages;")
+        parser.insert_messages([self.msg, self.msg, self.msg], self.engine)
+        result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
 
