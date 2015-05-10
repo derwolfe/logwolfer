@@ -205,5 +205,6 @@ def read_file(fname, engine):
 
 if __name__ == '__main__':
     import sys
-    build_db(metadata)
+    engine = engine_factory('sqlite:///chat-logs.db')
+    build_db(metadata, engine)
     read_file(sys.argv[:1])

@@ -71,37 +71,45 @@ class TestParseMessage(TestCase):
         }
         self.msg_type, self.parsed = parser.parse_line(json.dumps(self.msg))
 
-    def test_parsesMsgId(self):
+    def test_parsesMsgType(self):
         self.assertEqual('message', self.msg_type)
 
     def test_parsesMsgId(self):
-        self.assertEqual(self.msg["id"], self.parsed.msg_id)
+        self.assertEqual(
+            self.msg["id"], self.parsed["msg_id"]
+        )
 
     def test_parsesRecvFrom(self):
-        self.assertEqual(self.msg["from"], self.parsed.recv_from)
+        self.assertEqual(
+            self.msg["from"], self.parsed["recv_from"]
+        )
 
     def test_parsesSiteId(self):
-        self.assertEqual(self.msg["site_id"], self.parsed.site_id)
+        self.assertEqual(
+            self.msg["site_id"], self.parsed["site_id"]
+        )
 
     def test_parsesType(self):
-        self.assertEqual(self.msg["type"], self.parsed.msg_type)
+        self.assertEqual(
+            self.msg["type"], self.parsed["msg_type"]
+        )
 
     def test_parsesMessage(self):
-        self.assertEqual(self.msg["data"]["message"], self.parsed.status)
+        self.assertEqual(
+            self.msg["data"]["message"], self.parsed["status"]
+        )
 
     def test_parsesTimestamp(self):
         self.assertEqual(
             datetime.fromtimestamp(self.msg["timestamp"]),
-            self.parsed.timestamp
+            self.parsed["timestamp"]
         )
 
 
 class TestInsertMessages(TestCase):
 
     def setUp(self):
-        # tear down and recreate db for each test!
-        connection_string = 'sqlite://'
-        self.engine = parser.engine_factory(connection_string)
+        self.engine = parser.engine_factory('sqlite://')
         parser.build_db(parser.metadata, self.engine)
 
         self.msg = parser.parse_message(
