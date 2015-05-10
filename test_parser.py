@@ -113,6 +113,24 @@ class TestInsertMessages(TestCase):
         result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
+class TestInsertStatuses(TestCase):
+
+    def setUp(self):
+        self.engine = parser.engine_factory('sqlite://')
+        parser.build_db(parser.metadata, self.engine)
+
+        self.status = parser.parse_status(
+            status_id=1,
+            from_id=1,
+            site_id=1,
+            status=False,
+            timestamp=1429026448
+        )
+
+    def test_doesNotInsertDuplicates(self):
+        parser.insert_statuses([self.status, self.status, self.status], self.engine)
+        result = self.engine.execute("select count(*) as ct from statuses;")
+        self.assertEqual(1, result.scalar())
 
 if __name__ == '__main__':
     testmain()
