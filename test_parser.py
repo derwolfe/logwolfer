@@ -25,7 +25,9 @@ class TestParseStatus(TestCase):
             "timestamp":1429026448
         }
 
-        self.msg_type, self.parsed = parser.parse_line(json.dumps(self.msg))
+        self.msg_type, self.parsed = parser.parse_line(
+            json.dumps(self.msg)
+        )
 
     def test_parsesMsgId(self):
         self.assertEqual('status', self.msg_type)
@@ -34,21 +36,18 @@ class TestParseStatus(TestCase):
         self.assertEqual(self.msg["id"], self.parsed["system_id"])
 
     def test_parsesRecvFrom(self):
-        self.assertEqual(self.msg["from"], self.parsed.recv_from)
+        self.assertEqual(self.msg["from"], self.parsed["from_id"])
 
     def test_parsesSiteId(self):
-        self.assertEqual(self.msg["site_id"], self.parsed.site_id)
-
-    def test_parsesType(self):
-        self.assertEqual(self.msg["type"], self.parsed.msg_type)
+        self.assertEqual(self.msg["site_id"], self.parsed["site_id"])
 
     def test_parsesStatus(self):
-        self.assertTrue(self.parsed.online)
+        self.assertTrue(self.parsed["status"])
 
     def test_parsesTimestamp(self):
         self.assertEqual(
             datetime.fromtimestamp(self.msg["timestamp"]),
-            self.parsed.timestamp
+            self.parsed["timestamp"]
         )
 
     def test_is_online(self):
@@ -76,27 +75,17 @@ class TestParseMessage(TestCase):
 
     def test_parsesMsgId(self):
         self.assertEqual(
-            self.msg["id"], self.parsed["msg_id"]
+            self.msg["id"], self.parsed["system_id"]
         )
 
     def test_parsesRecvFrom(self):
         self.assertEqual(
-            self.msg["from"], self.parsed["recv_from"]
+            self.msg["from"], self.parsed["from_id"]
         )
 
     def test_parsesSiteId(self):
         self.assertEqual(
             self.msg["site_id"], self.parsed["site_id"]
-        )
-
-    def test_parsesType(self):
-        self.assertEqual(
-            self.msg["type"], self.parsed["msg_type"]
-        )
-
-    def test_parsesMessage(self):
-        self.assertEqual(
-            self.msg["data"]["message"], self.parsed["status"]
         )
 
     def test_parsesTimestamp(self):
@@ -114,9 +103,8 @@ class TestInsertMessages(TestCase):
 
         self.msg = parser.parse_message(
             msg_id=1,
-            recv_from=1,
+            from_id=1,
             site_id=1,
-            status="stuff",
             timestamp=1429026448
         )
 

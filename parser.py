@@ -28,7 +28,6 @@ Messages = Table(
     Column("system_id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
-    Column("status", String, nullable=False),
     Column("timestamp", DateTime, nullable=False),
 )
 
@@ -38,7 +37,7 @@ Statuses = Table(
     Column("system_id", Integer, primary_key=True, autoincrement=False),
     Column("from_id", String, nullable=False),
     Column("site_id", Integer, nullable=False),
-    Column("online", Boolean, nullable=False),
+    Column("status", Boolean, nullable=False),
     Column("timestamp", DateTime, nullable=False),
 )
 
@@ -58,12 +57,11 @@ def build_db(metadata, engine):
     metadata.create_all()
 
 
-def parse_message(msg_id, recv_from, site_id, status, timestamp):
+def parse_message(msg_id, from_id, site_id, timestamp):
     return dict(
         system_id=msg_id,
-        from_id=recv_from,
+        from_id=from_id,
         site_id=site_id,
-        status=status,
         timestamp=datetime.fromtimestamp(
             timestamp
         )
@@ -72,10 +70,10 @@ def parse_message(msg_id, recv_from, site_id, status, timestamp):
 def is_online(status):
     return status == u"online"
 
-def parse_status(status_id, recv_from, site_id, status, timestamp):
+def parse_status(status_id, from_id, site_id, status, timestamp):
     return dict(
         system_id=status_id,
-        from_id=recv_from,
+        from_id=from_id,
         site_id=site_id,
         status=is_online(
             status
@@ -114,15 +112,14 @@ def parse_line(line):
     if msg["type"] == u"message":
         return 'message', parse_message(
             msg_id=msg["id"],
-            recv_from=msg["from"],
+            from_id=msg["from"],
             site_id=msg["site_id"],
-            status=msg["data"]["message"],
             timestamp=msg["timestamp"]
         )
     else:
         return 'status', parse_status(
             status_id=msg["id"],
-            recv_from=msg["from"],
+            from_id=msg["from"],
             site_id=msg["site_id"],
             status=msg["data"]["status"],
             timestamp=msg["timestamp"]
