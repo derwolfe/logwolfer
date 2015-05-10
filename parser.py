@@ -60,6 +60,7 @@ def build_db(metadata, engine):
     metadata.bind = engine
     metadata.create_all()
 
+
 def parse_message(msg_id, recv_from, site_id,
                   msg_type, status, timestamp):
     return dict(
@@ -74,10 +75,7 @@ def parse_message(msg_id, recv_from, site_id,
     )
 
 def is_online(status):
-    if status == u"online":
-        return True
-    else:
-        return False
+    return status == u"online"
 
 def parse_status(status_id, recv_from, site_id,
                  msg_type, status, timestamp):
@@ -119,8 +117,8 @@ def parse_line(line):
     @returns a new L{parser.Message} or L{parser.Status} object.
     """
     msg = json.loads(line)
+
     if msg["type"] == u"message":
-        print( msg)
         return 'message', parse_message(
             msg_id=msg["id"],
             recv_from=msg["from"],
