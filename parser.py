@@ -254,7 +254,47 @@ def build_results(engine):
     123,messages=1,emails=0,operators=1,visitors=2
     124,messages=2,emails=1,operators=4,visitors=1
     """
-    pass
+    sql = """
+-- make sure to drop and recreate the chats table.
+DROP TABLE chats;
+CREATE TABLE chats (
+  site_id TEXT NOT NULL
+  , chat INTEGER NOT NULL
+);
+
+-- for each message record the site and whether or not it is a chat
+-- this is order N as it basically makes a new record for every one.
+INSERT INTO chats(site_id, chat)
+SELECT
+  m.site_id
+  , CASE WHEN
+    ( SELECT s.timestamp
+      FROM Statuses s
+      WHERE s.timestamp <= m.timestamp
+        and s.site_id = m.site_id
+        and s.status == 1  -- online
+     ORDER BY s.timestamp DESC
+     LIMIT 1) is null THEN 0 ELSE 1 END
+     as chat
+FROM messages m;
+
+SELECT
+  m.site_id AS site_id
+  , as chat
+  , as email
+  , (SELECT COUNT(*) FROM
+      (SELECT distinct FROM_id
+       FROM statuses st WHERE st.site_id = s.site_id))
+  , (SELECT COUNT(*) FROM
+       (SELECT DISTINCT FROM_id
+        FROM messages ms WHERE ms.site_id = s.site_id))
+FROM
+        messages m JOIN sites s
+                ON m.site_id = s.site_id
+GROUP BY m.site_id
+ORDER BY m.site_id asc;
+"""
+
 
 if __name__ == "__main__":
     import sys

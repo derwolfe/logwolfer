@@ -24,15 +24,17 @@ CREATE INDEX chats_site_id_idx ON chats(site_id, chat);
 
 SELECT
   m.site_id AS site_id
+  , (SELECT COUNT(*)
+       FROM chats ch WHERE ch.site_id = s.site_id)
   , (SELECT COUNT(*) FROM
       (SELECT distinct FROM_id
        FROM statuses st WHERE st.site_id = s.site_id))
   , (SELECT COUNT(*) FROM
        (SELECT DISTINCT FROM_id
         FROM messages ms WHERE ms.site_id = s.site_id))
-FROM
-        messages m JOIN sites s
-                ON m.site_id = s.site_id
+FROM messages m
+     JOIN sites s
+          ON m.site_id = s.site_id
 GROUP BY m.site_id
 ORDER BY m.site_id asc limit 10;
 
