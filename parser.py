@@ -12,7 +12,6 @@ from sqlalchemy import (
     DateTime,
     Text,
     Boolean,
-    # ForeignKey,
     MetaData,
     Table,
     UniqueConstraint,
