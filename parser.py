@@ -310,6 +310,10 @@ ORDER BY s.site_id ASC;
     results = engine.execute(sql)
     logging.info("fetching result set")
     for row in results:
+        # 123,messages=1,emails=0,operators=1,visitors=2
+        print("%d,messages=%d,emails=%d,operators=%d,visitors=%d"
+              %(row["site_id"], row["emails"], row["operators"],
+                row["visitors"],))
 
 
 
