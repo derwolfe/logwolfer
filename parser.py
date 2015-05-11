@@ -26,6 +26,8 @@ from datetime import datetime
 import logging
 import gzip
 
+import click
+
 
 metadata = MetaData()
 
@@ -346,6 +348,12 @@ ORDER BY s.site_id ASC;
 # you could have a flag that says - continue using old database
 # and a flag that says start from scratch.
 
+@click
+@click.command()
+@click.option("--fname", help="the absolute or relative name of the logfile")
+@click.option("--ftype", default="gzip",
+              help="Enter gzip if the file is a gzip, otherwise use txt"
+          )
 def main(fname, ftype, metadata, engine):
     build_db(metadata, engine)
     read_file(fname, ftype, engine)
@@ -360,4 +368,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///chat-logs.db")
     # bind it
-    main(sys.argv[-1], 'txt', metadata, engine)
+    main(metadata, engine)
