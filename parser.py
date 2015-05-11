@@ -202,26 +202,6 @@ def read_file(fname, engine):
         logging.info("final writes")
 
 
-def build_indices(engine):
-    """
-    Build indexes on the data in the database and populate the sites
-    table.
-
-    This is meant to be run __after__ the data has been inserted into the db.
-
-    @param engine: a sqlalchemy engine capable of talking to the database that
-        already has been loaded with data.
-    @type engine: a L{sqlalchemy.engine} object
-    """
-    msg_index = Index("message_site_id_idx", Messages.c.site_id)
-    status_index = Index("status_site_id_idx", Statuses.c.site_id)
-    status_time_index = Index("status_site_timestamp_idx",
-                              Statuses.c.timestamp.desc(), Statuses.c.site_id)
-    msg_index.create(engine)
-    status_index.create(engine)
-    status_time_index.create(engine)
-
-
 def build_sites(engine):
     """
     With the logs loaded, build a table containing all of the site_ids.
@@ -237,8 +217,31 @@ FROM (
 )
 GROUP BY site_id
 """
-
+    logging.info("building sites table")
     engine.execute(sql)
+    logging.info("finished populating sites table")
+
+
+def build_indices(engine):
+    """
+    Build indexes on the data in the database and populate the sites
+    table.
+
+    This is meant to be run __after__ the data has been inserted into the db.
+
+    @param engine: a sqlalchemy engine capable of talking to the database that
+        already has been loaded with data.
+    @type engine: a L{sqlalchemy.engine} object
+    """
+    logging.info("adding indices")
+    msg_index = Index("message_site_id_idx", Messages.c.site_id)
+    status_index = Index("status_site_id_idx", Statuses.c.site_id)
+    status_time_index = Index("status_site_timestamp_idx",
+                              Statuses.c.timestamp.desc(), Statuses.c.site_id)
+    msg_index.create(engine)
+    status_index.create(engine)
+    status_time_index.create(engine)
+    logging.info("finished adding indices")
 
 
 def build_results(engine):
@@ -254,19 +257,15 @@ def build_results(engine):
     123,messages=1,emails=0,operators=1,visitors=2
     124,messages=2,emails=1,operators=4,visitors=1
     """
-    logging.info("building the result set, please wait.")
-    # with open(b"./bucket-results.sql", "r") as f:
-    #     query = f.read_lines()
-    #     engine.execute(query)
-
-    sql_query =
-    sql = """
+    create_chats = """
 CREATE TABLE chats (
   message_id TEXT NOT NULL
   , site_id TEXT NOT NULL
   , chat INTEGER NOT NULL
 );
+"""
 
+    insert_chats = """
 INSERT INTO chats(message_id, site_id, chat)
 SELECT
   m.system_id
@@ -281,9 +280,9 @@ SELECT
      LIMIT 1) is null THEN 0 ELSE 1 END
      as chat
 FROM messages m;
+"""
 
--- GOOD TO HERE
-
+    analyze_all = """
 -- builds the two automatic indexes needed on the chats table itself
 -- a good optimization would be to come up with them beforehand. But,
 -- the ones I have built haven't matched its speed.
@@ -307,13 +306,19 @@ SELECT
 FROM sites s
 ORDER BY s.site_id ASC;
 """
-    results = engine.execute(sql)
-    logging.info("fetching result set")
+    #logging.info("creating chats table")
+    #engine.execute(create_chats)
+    #logging.info("tagging messages as chats or emails")
+    #engine.execute(insert_chats)
+    logging.info("performing analysis")
+    results = engine.execute(analyze_all)
+    logging.info("fetching analysis results")
     for row in results:
         # 123,messages=1,emails=0,operators=1,visitors=2
         print("%d,messages=%d,emails=%d,operators=%d,visitors=%d"
-              %(row["site_id"], row["emails"], row["operators"],
+              %(row["site_id"],row["chats"],row["emails"], row["operators"],
                 row["visitors"],))
+
 
 
 
