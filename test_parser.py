@@ -160,15 +160,15 @@ class IntegrationTest(TestCase):
 
     def test_runWithSmallInput(self):
         engine = parser.engine_factory("sqlite://")
-        parser.main(
-            "./data/small_input",
-            "txt",
-            parser.metadata,
-            engine)
-        self.assertEquals(
-            "1,messages=4,emails=4,operators=2,visitors=5",
-            output
-        )
+        with capture(parser.main,
+                     "./data/small_input",
+                     "txt",
+                     parser.metadata,
+                     engine) as output:
+            self.assertEquals(
+                "1,messages=4,emails=4,operators=2,visitors=5",
+                output.strip()
+            )
 
 
 if __name__ == "__main__":

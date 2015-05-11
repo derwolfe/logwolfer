@@ -357,7 +357,7 @@ def main(fname, ftype, metadata, engine):
 
 if __name__ == "__main__":
     import sys
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///chat-logs.db")
     # bind it
     main(sys.argv[-1], 'txt', metadata, engine)
