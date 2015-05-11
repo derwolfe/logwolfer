@@ -55,10 +55,10 @@ Sites = Table(
 
 Chats = Table(
     "chats", metadata,
-    Column("message_id", Text, primary_key=True, autoincrement=False)
+    Column("message_id", Text, primary_key=True, autoincrement=False),
     Column("site_id", Integer, nullable=False),
-    Column("status", Boolean, nullable=False),
-
+    Column("chat", Boolean, nullable=False)
+)
 
 
 def engine_factory(connection_string):
@@ -141,7 +141,7 @@ def parse_line(line):
         )
 
 
-def insert_statuses(statuses, engine):
+def _insert_statuses(statuses, engine):
     """
     Insert status messages into the database. Will not insert duplicates.
 
@@ -160,7 +160,7 @@ def insert_statuses(statuses, engine):
     )
 
 
-def insert_messages(messages, engine):
+def _insert_messages(messages, engine):
     """
     Insert chat messages into the database.
 
@@ -179,34 +179,46 @@ def insert_messages(messages, engine):
     )
 
 
-def read_file(fname, engine):
+def read_file(fname, engine, filetype):
+    logging.info("starting to read file")
+    if filetype == 'gzip':
+        with gzip.open(fname, 'r') as f:
+            insert_messages(engine, f)
+    else: # normal file
+        with open(fname, 'r') as f:
+            insert_messages(engine, f)
+
+
+def insert_messages(engine, logs):
+    """
+    Insert all of the new messages into the system.
+
+    @param logs: an iterable that contains C{dictionares} of either
+        messages or statuses.
+    """
     statuses = []
     messages = []
     insert_when = 5000
+    for line in logs:
+        line_type, parsed = parse_line(line)
 
-    logging.info("starting to read file")
+        if line_type == "status":
+            statuses.append(parsed)
+        elif line_type == "message":
+            messages.append(parsed)
 
-    with gzip.open(fname, 'r') as f:
-        for line in f:
-            line_type, parsed = parse_line(line)
+        # db calls
+        if len(statuses) == insert_when:
+            _insert_statuses(statuses, engine)
+            statuses = []
+        elif len(messages) == insert_when:
+            _insert_messages(messages, engine)
+            messages = []
 
-            if line_type == "status":
-                statuses.append(parsed)
-            elif line_type == "message":
-                messages.append(parsed)
-
-            # db calls
-            if len(statuses) == insert_when:
-                insert_statuses(statuses, engine)
-                statuses = []
-            elif len(messages) == insert_when:
-                insert_messages(messages, engine)
-                messages = []
-
-        # insert the remaining records
-        insert_statuses(statuses, engine)
-        insert_messages(messages, engine)
-        logging.info("final writes")
+    # insert the remaining records
+    _insert_statuses(statuses, engine)
+    _insert_messages(messages, engine)
+    logging.info("final writes")
 
 
 def build_sites(engine):
@@ -214,7 +226,7 @@ def build_sites(engine):
     With the logs loaded, build a table containing all of the site_ids.
     """
     sql = """
-INSERT INTO sites (site_id)
+    INSERT OR IGNORE INTO sites (site_id)
 SELECT site_id
 FROM (
     SELECT distinct site_id FROM messages
@@ -242,10 +254,19 @@ def build_indices(engine):
     @returns: nothing
     """
     logging.info("adding indices")
+
+    d1 = "DROP INDEX IF EXISTS message_site_id_idx;"
+    d2 = "DROP INDEX IF EXISTS status_site_id_idx;"
+    d3 = "DROP INDEX IF EXISTS status_site_timestamp_idx;"
+    engine.execute(d1)
+    engine.execute(d2)
+    engine.execute(d3)
+
     msg_index = Index("message_site_id_idx", Messages.c.site_id)
     status_index = Index("status_site_id_idx", Statuses.c.site_id)
     status_time_index = Index("status_site_timestamp_idx",
                               Statuses.c.timestamp.desc(), Statuses.c.site_id)
+
     msg_index.create(engine)
     status_index.create(engine)
     status_time_index.create(engine)
@@ -322,10 +343,12 @@ ORDER BY s.site_id ASC;
               %(row["site_id"],row["chats"],row["emails"], row["operators"],
                 row["visitors"],))
 
+# you could have a flag that says - continue using old database
+# and a flag that says start from scratch.
 
 def main(metadata, engine):
-    build_db(metadata, engine)
-    read_file(sys.argv[-1], engine)
+    build_db(metadata, engine,)
+    read_file(sys.argv[-1], engine, 'txt')
     build_indices(engine)
     build_sites(engine)
     classify_messages(engine)
@@ -334,6 +357,6 @@ def main(metadata, engine):
 
 if __name__ == "__main__":
     import sys
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///chat-logs.db")
     main(metadata, engine)
