@@ -22,6 +22,21 @@ FROM messages m;
 -- build an index on site_id
 CREATE INDEX chats_site_id_idx ON chats(site_id, chat);
 
+-- selectid|order|from|detail
+-- 0|0|0|SCAN TABLE messages AS m USING COVERING INDEX message_site_id_idx (~1000000 rows)
+-- 0|1|1|SEARCH TABLE sites AS s USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
+-- 0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 1
+-- 1|0|0|SCAN TABLE chats AS ch (~100000 rows)
+-- 0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 2
+-- 3|0|0|SEARCH TABLE statuses AS st USING INDEX status_timestamp_site_idx (site_id=?) (~10 rows)
+-- 3|0|0|USE TEMP B-TREE FOR DISTINCT
+-- 2|0|0|SCAN SUBQUERY 3 (~10 rows)
+-- 0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 4
+-- 5|0|0|SEARCH TABLE messages AS ms USING INDEX message_site_id_idx (site_id=?) (~10 rows)
+-- 5|0|0|USE TEMP B-TREE FOR DISTINCT
+-- 4|0|0|SCAN SUBQUERY 5 (~10 rows)
+
+
 SELECT
   m.site_id AS site_id
   , (SELECT COUNT(*)

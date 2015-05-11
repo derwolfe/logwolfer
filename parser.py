@@ -255,45 +255,53 @@ def build_results(engine):
     124,messages=2,emails=1,operators=4,visitors=1
     """
     sql = """
--- make sure to drop and recreate the chats table.
-DROP TABLE chats;
 CREATE TABLE chats (
-  site_id TEXT NOT NULL
+  message_id TEXT NOT NULL
+  , site_id TEXT NOT NULL
   , chat INTEGER NOT NULL
 );
 
--- for each message record the site and whether or not it is a chat
--- this is order N as it basically makes a new record for every one.
-INSERT INTO chats(site_id, chat)
+INSERT INTO chats(message_id, site_id, chat)
 SELECT
-  m.site_id
+  m.system_id
+  , m.site_id
   , CASE WHEN
     ( SELECT s.timestamp
       FROM Statuses s
       WHERE s.timestamp <= m.timestamp
-        and s.site_id = m.site_id
         and s.status == 1  -- online
+        and s.site_id = m.site_id
      ORDER BY s.timestamp DESC
      LIMIT 1) is null THEN 0 ELSE 1 END
      as chat
 FROM messages m;
 
+-- GOOD TO HERE
+
+-- builds the two automatic indexes needed on the chats table itself
+-- a good optimization would be to come up with them beforehand. But,
+-- the ones I have built haven't matched its speed.
+
 SELECT
-  m.site_id AS site_id
-  , as chat
-  , as email
+  s.site_id AS site_id
+  , (SELECT COUNT(*)
+       FROM chats ch WHERE ch.site_id = s.site_id and ch.chat = 0)
+    as emails
+  , (SELECT COUNT(*)
+       FROM chats ch WHERE ch.site_id = s.site_id and ch.chat = 1)
+    as chats
   , (SELECT COUNT(*) FROM
       (SELECT distinct FROM_id
        FROM statuses st WHERE st.site_id = s.site_id))
+    as operators
   , (SELECT COUNT(*) FROM
        (SELECT DISTINCT FROM_id
         FROM messages ms WHERE ms.site_id = s.site_id))
-FROM
-        messages m JOIN sites s
-                ON m.site_id = s.site_id
-GROUP BY m.site_id
-ORDER BY m.site_id asc;
+    as visitors
+FROM sites s
+ORDER BY s.site_id ASC;
 """
+
 
 
 if __name__ == "__main__":
@@ -303,4 +311,4 @@ if __name__ == "__main__":
     #build_db(metadata, engine)
     #read_file(sys.argv[-1], engine)
     #build_indices(engine)
-    build_sites(engine)
+    #build_sites(engine)
