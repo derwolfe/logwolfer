@@ -216,7 +216,7 @@ def build_indices(engine):
     msg_index = Index("message_site_id_idx", Messages.c.site_id)
     status_index = Index("status_site_id_idx", Statuses.c.site_id)
     status_time_index = Index("status_site_timestamp_idx",
-                              Statuses.c.timestamp, Statuses.c.site_id)
+                              Statuses.c.timestamp.desc(), Statuses.c.site_id)
     msg_index.create(engine)
     status_index.create(engine)
     status_time_index.create(engine)
