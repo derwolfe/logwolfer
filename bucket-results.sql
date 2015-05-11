@@ -22,27 +22,39 @@ FROM messages m;
 -- build an index on site_id
 CREATE INDEX chats_site_id_idx ON chats(site_id, chat);
 
-
 SELECT
   m.site_id AS site_id
-   -- , COUNT(ch.chat)
-   -- , COUNT(email.chat)
-   , (SELECT COUNT(*) FROM
-       (SELECT distinct FROM_id
-        FROM statuses st WHERE st.site_id = s.site_id))
-   , (SELECT COUNT(*) FROM
-        (SELECT DISTINCT FROM_id
-         FROM messages ms WHERE ms.site_id = s.site_id))
-FROM messages m
-     JOIN sites s
-          ON m.site_id = s.site_id
+  , (SELECT COUNT(*) FROM
+      (SELECT distinct FROM_id
+       FROM statuses st WHERE st.site_id = s.site_id))
+  , (SELECT COUNT(*) FROM
+       (SELECT DISTINCT FROM_id
+        FROM messages ms WHERE ms.site_id = s.site_id))
+FROM
+        messages m JOIN sites s
+                ON m.site_id = s.site_id
+GROUP BY m.site_id
+ORDER BY m.site_id asc limit 10;
+
+
+-- SELECT
+--   m.site_id AS site_id
+--    -- , COUNT(ch.chat)
+--    -- , COUNT(email.chat)
+--    , COUNT(m.from_id)
+--    , COUNT(st.from_id)
+-- FROM messages m
+--      JOIN sites s
+--           ON m.site_id = s.site_id
 --      JOIN chats ch
 --           ON s.site_id = ch.site_id
 --      JOIN chats email
---           ON s.site_id = ch1.site_id
+--           ON s.site_id = email.site_id
+--      JOIN statuses st
+--           on s.site_id = st.site_id
 -- WHERE
 --       ch.chat = 1
 --       and email.chat = 0
-GROUP BY m.site_id
-ORDER BY m.site_id asc
-LIMIT 50;
+-- GROUP BY m.site_id, m.from_id, st.from_id, ch.chat, email.chat
+-- ORDER BY m.site_id asc
+-- LIMIT 50;
