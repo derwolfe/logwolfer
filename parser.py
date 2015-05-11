@@ -237,15 +237,8 @@ FROM (
 )
 GROUP BY site_id
 """
+
     engine.execute(sql)
-
-
-def bucket_messages(engine):
-    """
-    Bucket the messages in the L{parser.Messages} table into a new table
-    that states whether or not these messages were made online or offline.
-    """
-    pass
 
 
 def build_results(engine):
