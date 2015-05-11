@@ -53,14 +53,6 @@ Sites = Table(
     Column("site_id", Integer, primary_key=True, autoincrement=False)
 )
 
-# Email_or_chats = Table(
-#     "email_or_chats", metadata,
-#     Column("system_id", Integer, ForeignKey("messages.system_id"),
-# primary_key=True),
-#     Column("email", Boolean, nullable=False),
-#     Column("chat", Boolean, nullable=False)
-# )
-
 
 def engine_factory(connection_string):
     return create_engine(connection_string, echo=False)
