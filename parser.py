@@ -141,7 +141,7 @@ def parse_line(line):
         )
 
 
-def _insert_statuses(statuses, engine):
+def insert_statuses(statuses, engine):
     """
     Insert status messages into the database. Will not insert duplicates.
 
@@ -160,7 +160,7 @@ def _insert_statuses(statuses, engine):
     )
 
 
-def _insert_messages(messages, engine):
+def insert_messages(messages, engine):
     """
     Insert chat messages into the database.
 
@@ -179,17 +179,17 @@ def _insert_messages(messages, engine):
     )
 
 
-def read_file(fname, engine, filetype):
+def read_file(fname, filetype, engine):
     logging.info("starting to read file")
     if filetype == 'gzip':
         with gzip.open(fname, 'r') as f:
-            insert_messages(engine, f)
+            parse_logs(engine, f)
     else: # normal file
         with open(fname, 'r') as f:
-            insert_messages(engine, f)
+            parse_logs(engine, f)
 
 
-def insert_messages(engine, logs):
+def parse_logs(engine, logs):
     """
     Insert all of the new messages into the system.
 
@@ -209,15 +209,15 @@ def insert_messages(engine, logs):
 
         # db calls
         if len(statuses) == insert_when:
-            _insert_statuses(statuses, engine)
+            insert_statuses(statuses, engine)
             statuses = []
         elif len(messages) == insert_when:
-            _insert_messages(messages, engine)
+            insert_messages(messages, engine)
             messages = []
 
     # insert the remaining records
-    _insert_statuses(statuses, engine)
-    _insert_messages(messages, engine)
+    insert_statuses(statuses, engine)
+    insert_messages(messages, engine)
     logging.info("final writes")
 
 
@@ -346,9 +346,9 @@ ORDER BY s.site_id ASC;
 # you could have a flag that says - continue using old database
 # and a flag that says start from scratch.
 
-def main(metadata, engine):
-    build_db(metadata, engine,)
-    read_file(sys.argv[-1], engine, 'txt')
+def main(fname, ftype, metadata, engine):
+    build_db(metadata, engine)
+    read_file(fname, ftype, engine)
     build_indices(engine)
     build_sites(engine)
     classify_messages(engine)
@@ -357,6 +357,7 @@ def main(metadata, engine):
 
 if __name__ == "__main__":
     import sys
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
     engine = engine_factory("sqlite:///chat-logs.db")
-    main(metadata, engine)
+    # bind it
+    main(sys.argv[-1], 'txt', metadata, engine)

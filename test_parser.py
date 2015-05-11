@@ -5,10 +5,23 @@ Tests for the parser module.
 from __future__ import absolute_import, print_function
 from unittest import TestCase, main as testmain
 
+import sys
+from cStringIO import StringIO
+from contextlib import contextmanager
+
 from datetime import datetime
 import json
 
 import parser
+
+
+@contextmanager
+def capture(command, *args, **kwargs):
+    out, sys.stdout = sys.stdout, StringIO()
+    command(*args, **kwargs)
+    sys.stdout.seek(0)
+    yield sys.stdout.read()
+    sys.stdout = out
 
 
 class TestParseStatus(TestCase):
@@ -143,15 +156,19 @@ class TestInsertStatuses(TestCase):
         self.assertEqual(1, result.scalar())
 
 
-class TestBuildIndices(TestCase):
+class IntegrationTest(TestCase):
 
-    def setUp(self):
-        self.engine = parser.engine_factory("sqlite://")
-        parser.build_db(parser.metadata, self.engine)
-        parser.build_indices(self.engine))
-
-    def test_build_indices(self):
-        pass
+    def test_runWithSmallInput(self):
+        engine = parser.engine_factory("sqlite://")
+        parser.main(
+            "./data/small_input",
+            "txt",
+            parser.metadata,
+            engine)
+        self.assertEquals(
+            "1,messages=4,emails=4,operators=2,visitors=5",
+            output
+        )
 
 
 if __name__ == "__main__":
