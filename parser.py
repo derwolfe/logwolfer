@@ -254,6 +254,12 @@ def build_results(engine):
     123,messages=1,emails=0,operators=1,visitors=2
     124,messages=2,emails=1,operators=4,visitors=1
     """
+    logging.info("building the result set, please wait.")
+    # with open(b"./bucket-results.sql", "r") as f:
+    #     query = f.read_lines()
+    #     engine.execute(query)
+
+    sql_query =
     sql = """
 CREATE TABLE chats (
   message_id TEXT NOT NULL
@@ -301,6 +307,9 @@ SELECT
 FROM sites s
 ORDER BY s.site_id ASC;
 """
+    results = engine.execute(sql)
+    logging.info("fetching result set")
+    for row in results:
 
 
 
@@ -312,3 +321,4 @@ if __name__ == "__main__":
     #read_file(sys.argv[-1], engine)
     #build_indices(engine)
     #build_sites(engine)
+    build_results(engine)
