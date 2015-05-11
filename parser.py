@@ -53,6 +53,13 @@ Sites = Table(
     Column("site_id", Integer, primary_key=True, autoincrement=False)
 )
 
+Chats = Table(
+    "chats", metadata,
+    Column("message_id", Text, primary_key=True, autoincrement=False)
+    Column("site_id", Integer, nullable=False),
+    Column("status", Boolean, nullable=False),
+
+
 
 def engine_factory(connection_string):
     return create_engine(connection_string, echo=False)
@@ -206,7 +213,6 @@ def build_sites(engine):
     """
     With the logs loaded, build a table containing all of the site_ids.
     """
-    Sites.create(engine, checkfirst=True)
     sql = """
 INSERT INTO sites (site_id)
 SELECT site_id
@@ -232,6 +238,8 @@ def build_indices(engine):
     @param engine: a sqlalchemy engine capable of talking to the database that
         already has been loaded with data.
     @type engine: a L{sqlalchemy.engine} object
+
+    @returns: nothing
     """
     logging.info("adding indices")
     msg_index = Index("message_site_id_idx", Messages.c.site_id)
@@ -242,6 +250,35 @@ def build_indices(engine):
     status_index.create(engine)
     status_time_index.create(engine)
     logging.info("finished adding indices")
+
+
+def classify_messages(engine):
+    """
+    Insert new chats into the L{parser.Chats} table. If a chat with a given
+    message ID has already been added, it will be treated as a duplicate and
+    skipped.
+
+    @param engine: a sqlalchemy engine that can perform queries.
+    @type engine: L{sqlalchemy.engine}
+    """
+    logging.info("tagging messages as chats or emails")
+    chats_insert_stmt = """
+INSERT OR IGNORE INTO chats(message_id, site_id, chat)
+SELECT
+  m.system_id
+  , m.site_id
+  , CASE WHEN
+    ( SELECT s.timestamp
+      FROM Statuses s
+      WHERE s.timestamp <= m.timestamp
+        and s.status == 1  -- online
+        and s.site_id = m.site_id
+     ORDER BY s.timestamp DESC
+     LIMIT 1) is null THEN 0 ELSE 1 END
+     as chat
+FROM messages m;
+"""
+    results = engine.execute(chats_insert_stmt)
 
 
 def build_results(engine):
@@ -257,36 +294,7 @@ def build_results(engine):
     123,messages=1,emails=0,operators=1,visitors=2
     124,messages=2,emails=1,operators=4,visitors=1
     """
-    create_chats = """
-CREATE TABLE chats (
-  message_id TEXT NOT NULL
-  , site_id TEXT NOT NULL
-  , chat INTEGER NOT NULL
-);
-"""
-
-    insert_chats = """
-INSERT INTO chats(message_id, site_id, chat)
-SELECT
-  m.system_id
-  , m.site_id
-  , CASE WHEN
-    ( SELECT s.timestamp
-      FROM Statuses s
-      WHERE s.timestamp <= m.timestamp
-        and s.status == 1  -- online
-        and s.site_id = m.site_id
-     ORDER BY s.timestamp DESC
-     LIMIT 1) is null THEN 0 ELSE 1 END
-     as chat
-FROM messages m;
-"""
-
     analyze_all = """
--- builds the two automatic indexes needed on the chats table itself
--- a good optimization would be to come up with them beforehand. But,
--- the ones I have built haven't matched its speed.
-
 SELECT
   s.site_id AS site_id
   , (SELECT COUNT(*)
@@ -306,28 +314,26 @@ SELECT
 FROM sites s
 ORDER BY s.site_id ASC;
 """
-    #logging.info("creating chats table")
-    #engine.execute(create_chats)
-    #logging.info("tagging messages as chats or emails")
-    #engine.execute(insert_chats)
     logging.info("performing analysis")
     results = engine.execute(analyze_all)
     logging.info("fetching analysis results")
     for row in results:
-        # 123,messages=1,emails=0,operators=1,visitors=2
         print("%d,messages=%d,emails=%d,operators=%d,visitors=%d"
               %(row["site_id"],row["chats"],row["emails"], row["operators"],
                 row["visitors"],))
 
 
+def main(metadata, engine):
+    build_db(metadata, engine)
+    read_file(sys.argv[-1], engine)
+    build_indices(engine)
+    build_sites(engine)
+    classify_messages(engine)
+    build_results(engine)
 
 
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.INFO)
     engine = engine_factory("sqlite:///chat-logs.db")
-    #build_db(metadata, engine)
-    #read_file(sys.argv[-1], engine)
-    #build_indices(engine)
-    #build_sites(engine)
-    build_results(engine)
+    main(metadata, engine)
