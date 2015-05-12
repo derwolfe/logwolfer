@@ -62,10 +62,27 @@ Chats = Table(
 
 
 def engine_factory(connection_string):
+    """
+    Given a connection string, create a new sqlalchemy db engine object.
+
+    @param connection_string: a connection string for sqlalchemy
+    @type conneciton_string: a string, unicode or bytes.
+
+    @return: a new L{sqlalchemy.engine.Engine}
+    """
     return create_engine(connection_string, echo=False)
 
 
 def build_db(metadata, engine):
+    """
+    Build a database using the given metadata and sqlengine.
+
+    @param metadata: table metadata that sqlalchemy understands.
+    @type metadata: a L{sqlalchemy.schema.MetaData} object.
+
+    @param engine: a db engine sql alchemy understands
+    @type engine: a L{sqlalchemy.engine.Engine}
+    """
     metadata.bind = engine
     metadata.create_all()
 
@@ -120,7 +137,8 @@ def parse_line(line):
         data[status], and a timestamp field.
     @type line - a string
 
-    @returns a new L{parser.Message} or L{parser.Status} object.
+    @returns a new C{dictionary} containing data representing a message or a
+        status message.
     """
     msg = json.loads(line)
 
@@ -147,8 +165,6 @@ def insert_statuses(statuses, engine):
 
     @param statuses - a list of status messages
     @type statuses - list of dictionaries
-
-    @returns - None
     """
     logging.info("writing statuses")
     insert_stmt = Statuses.insert(
@@ -166,8 +182,6 @@ def insert_messages(messages, engine):
 
     @param messages: a list of chat messages
     @type messages: list of L{parser.Messages} objects.
-
-    @returns - None
     """
     logging.info("writing messages")
     insert_stmt = Messages.insert(
@@ -180,8 +194,21 @@ def insert_messages(messages, engine):
 
 
 def read_file(fname, filetype, engine):
+    """
+    Given a filename, filetype, and sqlalchemy db engine, find the appropriate
+    reader to use, and start reading the file.
+
+    @param fname: the filename
+    @type fname: unicode string
+
+    @param fname: the filetype, e.g. "gzip" or "txt"
+    @type fname: unicode string
+
+    @param engine: a db engine capable of executing sql queries.
+    @type engine: a sqlalchemy db engine
+    """
     logging.info("starting to read file")
-    if filetype == 'gzip':
+    if filetype == u"gzip":
         with gzip.open(fname, 'r') as f:
             parse_logs(engine, f)
     else:
@@ -283,6 +310,7 @@ def classify_messages(engine):
     @type engine: L{sqlalchemy.engine}
     """
     logging.info("tagging messages as chats or emails")
+
     chats_insert_stmt = """
 INSERT OR IGNORE INTO chats(message_id, site_id, chat)
 SELECT
@@ -315,7 +343,8 @@ def build_results(engine):
     123,messages=1,emails=0,operators=1,visitors=2
     124,messages=2,emails=1,operators=4,visitors=1
     """
-    analyze_all = """
+
+    analyze_stmt = """
 SELECT
   s.site_id AS site_id
   , (SELECT COUNT(*)
@@ -336,7 +365,7 @@ FROM sites s
 ORDER BY s.site_id ASC;
 """
     logging.info("performing analysis")
-    results = engine.execute(analyze_all)
+    results = engine.execute(analyze_stmt)
     logging.info("fetching analysis results")
     for row in results:
         print("%d,messages=%d,emails=%d,operators=%d,visitors=%d"
@@ -344,7 +373,19 @@ ORDER BY s.site_id ASC;
                 row["visitors"]))
 
 
-def main(fname, ftype, metadata, engine):
+def _run_all(fname, ftype, metadata, engine):
+    """
+    Build the database, load data into it, and analyze it.
+
+    @param fname: the filename to load data from
+    @type fname: a unicode string
+
+    @param ftype: the filetype being loaded, e.g. C{u'txt'} or C{u'gzip'}
+    @type ftype: a unicode string
+
+    @param metadata: table metadata
+    @type ftype: L{sqlalchemy.Metadata}
+    """
     build_db(metadata, engine)
     read_file(fname, ftype, engine)
     build_indices(engine)
@@ -353,7 +394,19 @@ def main(fname, ftype, metadata, engine):
     build_results(engine)
 
 
-def load_only(fname, ftype, metadata, engine):
+def _load_only(fname, ftype, metadata, engine):
+    """
+    Run only the steps needed to load data into the db.
+
+    @param fname: the filename to load data from
+    @type fname: a unicode string
+
+    @param ftype: the filetype being loaded, e.g. C{u'txt'} or C{u'gzip'}
+    @type ftype: a unicode string
+
+    @param metadata: table metadata
+    @type ftype: L{sqlalchemy.Metadata}
+    """
     build_db(metadata, engine)
     read_file(fname, ftype, engine)
     build_indices(engine)
@@ -374,11 +427,11 @@ def run(onlyanalyze, onlyload, fname, ftype):
     logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///logwolfer.db")
     if onlyload:
-        load_only(fname, ftype, metadata, engine)
+        _load_only(fname, ftype, metadata, engine)
     elif onlyanalyze:
         build_results(engine)
     else:
-        main(fname, ftype, metadata, engine)
+        _main(fname, ftype, metadata, engine)
 
 
 if __name__ == "__main__":
