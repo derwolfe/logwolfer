@@ -160,7 +160,8 @@ class IntegrationTest(TestCase):
 
     def test_runWithSmallInput(self):
         engine = logwolfer.engine_factory("sqlite://")
-        with capture(logwolfer.main,
+
+        with capture(logwolfer.run_all,
                      "./data/small_input",
                      "txt",
                      logwolfer.metadata,

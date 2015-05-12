@@ -373,7 +373,7 @@ ORDER BY s.site_id ASC;
                 row["visitors"]))
 
 
-def _run_all(fname, ftype, metadata, engine):
+def run_all(fname, ftype, metadata, engine):
     """
     Build the database, load data into it, and analyze it.
 
@@ -394,7 +394,7 @@ def _run_all(fname, ftype, metadata, engine):
     build_results(engine)
 
 
-def _load_only(fname, ftype, metadata, engine):
+def load_only(fname, ftype, metadata, engine):
     """
     Run only the steps needed to load data into the db.
 
@@ -427,11 +427,11 @@ def run(onlyanalyze, onlyload, fname, ftype):
     logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///logwolfer.db")
     if onlyload:
-        _load_only(fname, ftype, metadata, engine)
+        load_only(fname, ftype, metadata, engine)
     elif onlyanalyze:
         build_results(engine)
     else:
-        _main(fname, ftype, metadata, engine)
+        run_all(fname, ftype, metadata, engine)
 
 
 if __name__ == "__main__":
