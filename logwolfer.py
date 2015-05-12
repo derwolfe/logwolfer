@@ -343,11 +343,8 @@ ORDER BY s.site_id ASC;
     logging.info("fetching analysis results")
     for row in results:
         print("%d,messages=%d,emails=%d,operators=%d,visitors=%d"
-              %(row["site_id"],row["chats"],row["emails"], row["operators"],
-                row["visitors"],))
-
-# you could have a flag that says - continue using old database
-# and a flag that says start from scratch.
+              %(row["site_id"], row["chats"], row["emails"], row["operators"],
+                row["visitors"]))
 
 
 def main(fname, ftype, metadata, engine):
@@ -357,6 +354,7 @@ def main(fname, ftype, metadata, engine):
     build_sites(engine)
     classify_messages(engine)
     build_results(engine)
+
 
 def load_only(fname, ftype, metadata, engine):
     build_db(metadata, engine)
