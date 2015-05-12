@@ -28,22 +28,22 @@ Steps to install
 These install steps are targeted at Ubuntu 12.04 LTS (precise 32). They were checked
 on a vagrant virtual machine.
 
-  sudo apt-get update
-  sudo apt-get install -y python-software-properties
-  sudo add-apt-repository ppa:fkrull/deadsnakes
-  sudo add-apt-repository -y ppa:pypy
-  sudo apt-get update
-  sudo apt-get install -y build-essential
-  sudo apt-get install -y pypy pypy-dev
-  sudo apt-get install -y python-sqlite
-  sudo apt-get install -y python-pip
-  sudo pip install --upgrade pip
-  sudo pip install virtualenv
-  virtualenv -p pypy pypyenv
-  source ./pypyenv/bin/activate
-  # cd into logwolfer root dir
-  pip install -r requirements.txt
-  # then run or test!
+     sudo apt-get update
+     sudo apt-get install -y python-software-properties
+     sudo add-apt-repository ppa:fkrull/deadsnakes
+     sudo add-apt-repository -y ppa:pypy
+     sudo apt-get update
+     sudo apt-get install -y build-essential
+     sudo apt-get install -y pypy pypy-dev
+     sudo apt-get install -y python-sqlite
+     sudo apt-get install -y python-pip
+     sudo pip install --upgrade pip
+     sudo pip install virtualenv
+     virtualenv -p pypy pypyenv
+     source ./pypyenv/bin/activate
+     # cd into logwolfer root dir
+     pip install -r requirements.txt
+     # then run or test!
    
 
 How to run
