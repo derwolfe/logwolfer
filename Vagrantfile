@@ -18,15 +18,16 @@ Vagrant.configure(2) do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
    config.vm.provision "shell", inline: <<-SHELL
+     sudo apt-get update
      sudo apt-get install -y python-software-properties
-     sudo add-apt-repository -y ppa:fkrull/deadsnakes
+     sudo add-apt-repository ppa:fkrull/deadsnakes
      sudo add-apt-repository -y ppa:pypy
      sudo apt-get update
-     sudo apt-get install -y python2.7 python2.7-dev
-     sudo apt-get install -y python-sqlite
-     sudo apt-get install -y python3.4 python3.4-dev
+     sudo apt-get install -y build-essential
      sudo apt-get install -y pypy pypy-dev
+     sudo apt-get install -y python-sqlite
      sudo apt-get install -y python-pip
+     sudo pip install --upgrade pip
      sudo pip install virtualenv
    SHELL
 end
