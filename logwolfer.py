@@ -17,9 +17,6 @@ from sqlalchemy import (
     Table,
     UniqueConstraint,
     create_engine,
-    select,
-    union,
-    sql
 )
 
 from datetime import datetime
@@ -302,7 +299,7 @@ SELECT
      as chat
 FROM messages m;
 """
-    results = engine.execute(chats_insert_stmt)
+    engine.execute(chats_insert_stmt)
 
 
 def build_results(engine):
@@ -385,7 +382,6 @@ def run(onlyanalyze, onlyload, fname, ftype):
 
 
 if __name__ == "__main__":
-    import sys
     logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///logwolfer.db")
     run()
