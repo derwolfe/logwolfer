@@ -348,12 +348,7 @@ ORDER BY s.site_id ASC;
 # you could have a flag that says - continue using old database
 # and a flag that says start from scratch.
 
-@click
-@click.command()
-@click.option("--fname", help="the absolute or relative name of the logfile")
-@click.option("--ftype", default="gzip",
-              help="Enter gzip if the file is a gzip, otherwise use txt"
-          )
+
 def main(fname, ftype, metadata, engine):
     build_db(metadata, engine)
     read_file(fname, ftype, engine)
@@ -362,10 +357,25 @@ def main(fname, ftype, metadata, engine):
     classify_messages(engine)
     build_results(engine)
 
+@click.command()
+@click.option("--onlyanalyze", type=click.BOOL, default=False,
+              help=("only run the analysis step. This requires data to have"
+                    "already been loaded into a database name ./chat-logs.db"))
+@click.option("--fname", help="the absolute or relative name of the logfile")
+@click.option("--ftype", default="gzip",
+              help="Enter gzip if the file is a gzip, otherwise use txt")
+def run(onlyanalyze, fname, ftype):
+    logging.basicConfig(level=logging.WARNING)
+    engine = engine_factory("sqlite:///chat-logs.db")
+    if onlyanalyze:
+        build_results(engine)
+    else:
+        main(fname, ftype, metadata, engine)
+
 
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///chat-logs.db")
     # bind it
-    main(metadata, engine)
+    run()

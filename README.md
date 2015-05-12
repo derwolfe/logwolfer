@@ -15,11 +15,26 @@ Steps to install
 How to run
 ----------
 
-    python parser.py <logfile_name>.gz
+For all text based filetypes, the following command will load in all of the
+data then run analyses on it.
+
+    python parser.py --fname=./data/small_input --ftype=txt
+
+If the file is a gzip file, the following command will work:
+
+    python parser.py --fname=./data/big_input.gz --ftype=gzip
+
+The application prints all of its analysis to stdout, if you would like to
+capture it via another file, simlply redirect it, e.g.:
+
+    python parser.py --fname=./data/big_input.gz --ftype=gzip > output.txt
 
 
 How to test
 -----------
+
+The test suite has a few small tests and an integration test that runs in
+memory, it can be run using:
 
     python test_parser.py
 
