@@ -46,7 +46,7 @@ How to run
 ----------
 
 For all text based filetypes, the following command will load in all of the
-data then run analyses on it.
+data in, then analyze it.
 
     python logwolfer.py --fname=./data/small_input --ftype=txt
 
