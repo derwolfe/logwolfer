@@ -1,5 +1,5 @@
 """
-Tests for the parser module.
+Tests for the logwolfer module.
 """
 
 from __future__ import absolute_import, print_function
@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from datetime import datetime
 import json
 
-import parser
+import logwolfer
 
 
 @contextmanager
@@ -38,7 +38,7 @@ class TestParseStatus(TestCase):
             "timestamp": 1429026448
         }
 
-        self.msg_type, self.parsed = parser.parse_line(
+        self.msg_type, self.parsed = logwolfer.parse_line(
             json.dumps(self.msg)
         )
 
@@ -73,8 +73,8 @@ class TestParseStatus(TestCase):
         )
 
     def test_is_online(self):
-        self.assertTrue(parser.is_online("online"))
-        self.assertFalse(parser.is_online("offline"))
+        self.assertTrue(logwolfer.is_online("online"))
+        self.assertFalse(logwolfer.is_online("offline"))
 
 
 class TestParseMessage(TestCase):
@@ -90,7 +90,7 @@ class TestParseMessage(TestCase):
             },
             "timestamp": 1429026445,
         }
-        self.msg_type, self.parsed = parser.parse_line(json.dumps(self.msg))
+        self.msg_type, self.parsed = logwolfer.parse_line(json.dumps(self.msg))
 
     def test_parsesMsgType(self):
         self.assertEqual("message", self.msg_type)
@@ -120,10 +120,10 @@ class TestParseMessage(TestCase):
 class TestInsertMessages(TestCase):
 
     def setUp(self):
-        self.engine = parser.engine_factory("sqlite://")
-        parser.build_db(parser.metadata, self.engine)
+        self.engine = logwolfer.engine_factory("sqlite://")
+        logwolfer.build_db(logwolfer.metadata, self.engine)
 
-        self.msg = parser.parse_message(
+        self.msg = logwolfer.parse_message(
             msg_id=1,
             from_id=1,
             site_id=1,
@@ -131,7 +131,7 @@ class TestInsertMessages(TestCase):
         )
 
     def test_doesNotInsertDuplicates(self):
-        parser.insert_messages([self.msg, self.msg], self.engine)
+        logwolfer.insert_messages([self.msg, self.msg], self.engine)
         result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
@@ -139,10 +139,10 @@ class TestInsertMessages(TestCase):
 class TestInsertStatuses(TestCase):
 
     def setUp(self):
-        self.engine = parser.engine_factory("sqlite://")
-        parser.build_db(parser.metadata, self.engine)
+        self.engine = logwolfer.engine_factory("sqlite://")
+        logwolfer.build_db(logwolfer.metadata, self.engine)
 
-        self.status = parser.parse_status(
+        self.status = logwolfer.parse_status(
             status_id=1,
             from_id=1,
             site_id=1,
@@ -151,7 +151,7 @@ class TestInsertStatuses(TestCase):
         )
 
     def test_doesNotInsertDuplicates(self):
-        parser.insert_statuses([self.status, self.status], self.engine)
+        logwolfer.insert_statuses([self.status, self.status], self.engine)
         result = self.engine.execute("select count(*) as ct from statuses;")
         self.assertEqual(1, result.scalar())
 
@@ -159,11 +159,11 @@ class TestInsertStatuses(TestCase):
 class IntegrationTest(TestCase):
 
     def test_runWithSmallInput(self):
-        engine = parser.engine_factory("sqlite://")
-        with capture(parser.main,
+        engine = logwolfer.engine_factory("sqlite://")
+        with capture(logwolfer.main,
                      "./data/small_input",
                      "txt",
-                     parser.metadata,
+                     logwolfer.metadata,
                      engine) as output:
             self.assertEquals(
                 "1,messages=4,emails=4,operators=2,visitors=5",

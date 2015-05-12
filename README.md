@@ -10,7 +10,7 @@ the first run.
 
 Three operating modes are available:
 
-1. Load data and run analysis on the data.
+1. Load data and run analyses.
 2. Load data only. This makes it possible to contine loading more and more information
    into the system, without needing to rebuild it over again. Duplicate messages will
    just be thrown away.
@@ -20,11 +20,7 @@ Three operating modes are available:
 
 All of the parsed messages are stored in ./logwolfer.db. This means, you can have
 several versions of your logwolfer database floating around, and you can store different
-versions of the database to target different times.
-
-But, for most uses of logwolfer, you'll run the application as a single-shot, i.e.
-you will load data in analyze it then delete the logwolfer results and start over.
-(At least, this is what I would expect you to do).
+versions of the database to target different times, instances, etc.
 
 Steps to install
 ----------------
@@ -43,7 +39,7 @@ on a vagrant virtual machine.
     source ./pypy-env/bin/activate
     pip install -r requirements.txt
 
-Once all of these steps have run, you simply need to CD into the directory containing
+Once all of these steps have run, you simply need to ``cd`` into the directory containing
 Logwolfer's source to run it.
 
 How to run
@@ -52,24 +48,24 @@ How to run
 For all text based filetypes, the following command will load in all of the
 data then run analyses on it.
 
-    python parser.py --fname=./data/small_input --ftype=txt
+    python logwolfer.py --fname=./data/small_input --ftype=txt
 
 If the file is a gzip file, the following command will work:
 
-    python parser.py --fname=./data/big_input.gz --ftype=gzip
+    python logwolfer.py --fname=./data/big_input.gz --ftype=gzip
 
 To load data into the application without running any analysis steps run:
 
-    python parser.py --onlyload=True --fname=./data/small_input --ftype=txt
+    python logwolfer.py --onlyload=True --fname=./data/small_input --ftype=txt
 
 To only run analysis steps on a logwolfer.db already loaded with data, run:
 
-    python parser.py --onlyanalyze=false --fname=./data/small_input --ftype=txt
+    python logwolfer.py --onlyanalyze=false --fname=./data/small_input --ftype=txt
 
 The application prints all of its analysis to stdout, if you would like to
 capture it via another file, simlply redirect it, e.g.:
 
-    python parser.py --fname=./data/big_input.gz --ftype=gzip > output.txt
+    python logwolfer.py --fname=./data/big_input.gz --ftype=gzip > output.txt
 
 How to test
 -----------
@@ -77,7 +73,7 @@ How to test
 The test suite has a few small tests and an integration test that runs in
 memory, it can be run using:
 
-    python test_parser.py
+    python test_logwolfer.py
 
 Benchmarks
 ----------

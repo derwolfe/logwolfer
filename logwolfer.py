@@ -2,6 +2,7 @@
 The parser module contains all of the functions needed
 to load new records into the database and to analyze them.
 """
+
 from __future__ import absolute_import, print_function
 import json
 
@@ -186,7 +187,7 @@ def read_file(fname, filetype, engine):
     if filetype == 'gzip':
         with gzip.open(fname, 'r') as f:
             parse_logs(engine, f)
-    else: # normal file
+    else:
         with open(fname, 'r') as f:
             parse_logs(engine, f)
 
@@ -357,17 +358,29 @@ def main(fname, ftype, metadata, engine):
     classify_messages(engine)
     build_results(engine)
 
+def load_only(fname, ftype, metadata, engine):
+    build_db(metadata, engine)
+    read_file(fname, ftype, engine)
+    build_indices(engine)
+    build_sites(engine)
+    classify_messages(engine)
+
+
 @click.command()
 @click.option("--onlyanalyze", type=click.BOOL, default=False,
-              help=("only run the analysis step. This requires data to have"
-                    "already been loaded into a database name ./chat-logs.db"))
-@click.option("--fname", help="the absolute or relative name of the logfile")
+              help=("Only run the analysis step. This requires data to have"
+                    "already been loaded into a database name ./logwolfer.db"))
+@click.option("--onlyload", type=click.BOOL, default=False,
+              help=("Load data into the database without performing analysis"))
+@click.option("--fname", help="The absolute or relative name of the logfile")
 @click.option("--ftype", default="gzip",
               help="Enter gzip if the file is a gzip, otherwise use txt")
-def run(onlyanalyze, fname, ftype):
+def run(onlyanalyze, onlyload, fname, ftype):
     logging.basicConfig(level=logging.WARNING)
-    engine = engine_factory("sqlite:///chat-logs.db")
-    if onlyanalyze:
+    engine = engine_factory("sqlite:///logwolfer.db")
+    if onlyload:
+        load_only(fname, ftype, metadata, engine)
+    elif onlyanalyze:
         build_results(engine)
     else:
         main(fname, ftype, metadata, engine)
@@ -376,6 +389,5 @@ def run(onlyanalyze, fname, ftype):
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.WARNING)
-    engine = engine_factory("sqlite:///chat-logs.db")
-    # bind it
+    engine = engine_factory("sqlite:///logwolfer.db")
     run()
