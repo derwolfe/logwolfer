@@ -227,12 +227,15 @@ def parse_logs(engine, logs):
     messages = []
     insert_when = 5000
     for line in logs:
-        line_type, parsed = parse_line(line)
+        try:
+            line_type, parsed = parse_line(line)
 
-        if line_type == "status":
-            statuses.append(parsed)
-        elif line_type == "message":
-            messages.append(parsed)
+            if line_type == "status":
+                statuses.append(parsed)
+            elif line_type == "message":
+                messages.append(parsed)
+        except KeyError:
+            logging.warning("error parsing message")
 
         # db calls
         if len(statuses) == insert_when:
