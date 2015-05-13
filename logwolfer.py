@@ -26,6 +26,8 @@ import gzip
 
 import click
 
+logging.basicConfig(level=logging.WARNING)
+log = logging.getLogger(__name__)
 
 metadata = MetaData()
 
@@ -166,7 +168,7 @@ def insert_statuses(statuses, engine):
     @param statuses - a list of status messages
     @type statuses - list of dictionaries
     """
-    logging.info("writing statuses")
+    log.info("writing statuses")
     insert_stmt = Statuses.insert(
         prefixes=['OR IGNORE']
     )
@@ -183,7 +185,7 @@ def insert_messages(messages, engine):
     @param messages: a list of chat messages
     @type messages: list of L{parser.Messages} objects.
     """
-    logging.info("writing messages")
+    log.info("writing messages")
     insert_stmt = Messages.insert(
         prefixes=["OR IGNORE"]
     )
@@ -207,7 +209,7 @@ def read_file(fname, filetype, engine):
     @param engine: a db engine capable of executing sql queries.
     @type engine: a sqlalchemy db engine
     """
-    logging.info("starting to read file")
+    log.info("starting to read file")
     if filetype == u"gzip":
         with gzip.open(fname, 'r') as f:
             parse_logs(engine, f)
@@ -235,7 +237,7 @@ def parse_logs(engine, logs):
             elif line_type == "message":
                 messages.append(parsed)
         except KeyError:
-            logging.warning("error parsing message: %s", line)
+            log.warning("error parsing message: %s", line)
 
         # db calls
         if len(statuses) == insert_when:
@@ -265,7 +267,7 @@ FROM (
 )
 GROUP BY site_id
 """
-    logging.info("building sites table")
+    log.info("building sites table")
     engine.execute(sql)
     logging.info("finished populating sites table")
 
@@ -283,7 +285,7 @@ def build_indices(engine):
 
     @returns: nothing
     """
-    logging.info("adding indices")
+    log.info("adding indices")
 
     d1 = "DROP INDEX IF EXISTS message_site_id_idx;"
     d2 = "DROP INDEX IF EXISTS status_site_id_idx;"
@@ -300,7 +302,7 @@ def build_indices(engine):
     msg_index.create(engine)
     status_index.create(engine)
     status_time_index.create(engine)
-    logging.info("finished adding indices")
+    log.info("finished adding indices")
 
 
 def classify_messages(engine):
@@ -312,7 +314,7 @@ def classify_messages(engine):
     @param engine: a sqlalchemy engine that can perform queries.
     @type engine: L{sqlalchemy.engine}
     """
-    logging.info("tagging messages as chats or emails")
+    log.info("tagging messages as chats or emails")
 
     chats_insert_stmt = """
 INSERT OR IGNORE INTO chats(message_id, site_id, chat)
@@ -367,9 +369,9 @@ SELECT
 FROM sites s
 ORDER BY s.site_id ASC;
 """
-    logging.info("performing analysis")
+    log.info("performing analysis")
     results = engine.execute(analyze_stmt)
-    logging.info("fetching analysis results")
+    log.info("fetching analysis results")
     for row in results:
         print("%d,messages=%d,emails=%d,operators=%d,visitors=%d"
               %(row["site_id"], row["chats"], row["emails"], row["operators"],
@@ -427,7 +429,6 @@ def load_only(fname, ftype, metadata, engine):
 @click.option("--ftype", default="gzip",
               help="Enter gzip if the file is a gzip, otherwise use txt")
 def run(onlyanalyze, onlyload, fname, ftype):
-    logging.basicConfig(level=logging.WARNING)
     engine = engine_factory("sqlite:///logwolfer.db")
     if onlyload:
         load_only(fname, ftype, metadata, engine)
