@@ -128,8 +128,8 @@ class IntegrationTests(TestCase):
         # close the connection
         pass
 
-    def test_doesNotInsertDuplicates(self):
-        logwolfer.build_db(logwolfer.metadata, engine)
+    def test_doesNotInsertDuplicatesMessages(self):
+        logwolfer.build_db(logwolfer.metadata, self.engine)
 
         self.msg = logwolfer.parse_message(
             msg_id=1,
@@ -143,7 +143,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(1, result.scalar())
 
 
-    def test_doesNotInsertDuplicates(self):
+    def test_doesNotInsertDuplicateStatuses(self):
         logwolfer.build_db(logwolfer.metadata, self.engine)
         self.status = logwolfer.parse_status(
             status_id=1,
