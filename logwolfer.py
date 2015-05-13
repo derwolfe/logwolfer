@@ -61,7 +61,7 @@ Chats = Table(
 )
 
 
-def engine_factory(connection_string):
+def engine_factory(connection_string, poolclass=None):
     """
     Given a connection string, create a new sqlalchemy db engine object.
 
@@ -227,12 +227,15 @@ def parse_logs(engine, logs):
     messages = []
     insert_when = 5000
     for line in logs:
-        line_type, parsed = parse_line(line)
+        try:
+            line_type, parsed = parse_line(line)
 
-        if line_type == "status":
-            statuses.append(parsed)
-        elif line_type == "message":
-            messages.append(parsed)
+            if line_type == "status":
+                statuses.append(parsed)
+            elif line_type == "message":
+                messages.append(parsed)
+        except KeyError:
+            logging.warning("error parsing message: %s", line)
 
         # db calls
         if len(statuses) == insert_when:

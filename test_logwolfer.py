@@ -12,6 +12,8 @@ from contextlib import contextmanager
 from datetime import datetime
 import json
 
+from sqlalchemy.pool import NullPool
+
 import logwolfer
 
 
@@ -117,10 +119,16 @@ class TestParseMessage(TestCase):
         )
 
 
-class TestInsertMessages(TestCase):
+class IntegrationTests(TestCase):
 
     def setUp(self):
-        self.engine = logwolfer.engine_factory("sqlite://")
+        self.engine = logwolfer.engine_factory("sqlite://", poolclass=NullPool)
+
+    def tearDown(self):
+        # close the connection
+        pass
+
+    def test_doesNotInsertDuplicatesMessages(self):
         logwolfer.build_db(logwolfer.metadata, self.engine)
 
         self.msg = logwolfer.parse_message(
@@ -130,18 +138,13 @@ class TestInsertMessages(TestCase):
             timestamp=1429026448
         )
 
-    def test_doesNotInsertDuplicates(self):
         logwolfer.insert_messages([self.msg, self.msg], self.engine)
         result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
 
-class TestInsertStatuses(TestCase):
-
-    def setUp(self):
-        self.engine = logwolfer.engine_factory("sqlite://")
+    def test_doesNotInsertDuplicateStatuses(self):
         logwolfer.build_db(logwolfer.metadata, self.engine)
-
         self.status = logwolfer.parse_status(
             status_id=1,
             from_id=1,
@@ -149,25 +152,30 @@ class TestInsertStatuses(TestCase):
             status=False,
             timestamp=1429026448
         )
-
-    def test_doesNotInsertDuplicates(self):
         logwolfer.insert_statuses([self.status, self.status], self.engine)
         result = self.engine.execute("select count(*) as ct from statuses;")
         self.assertEqual(1, result.scalar())
 
 
-class IntegrationTest(TestCase):
-
     def test_runWithSmallInput(self):
-        engine = logwolfer.engine_factory("sqlite://")
-
         with capture(logwolfer.run_all,
                      "./data/small_input",
                      "txt",
                      logwolfer.metadata,
-                     engine) as output:
+                     self.engine) as output:
             self.assertEquals(
                 "1,messages=4,emails=4,operators=2,visitors=5",
+                output.strip()
+            )
+
+    def test_runWithBadInput(self):
+        with capture(logwolfer.run_all,
+                     "./data/bad_input",
+                     "txt",
+                     logwolfer.metadata,
+                     self.engine) as output:
+            self.assertEquals(
+                "1,messages=3,emails=4,operators=2,visitors=4",
                 output.strip()
             )
 
