@@ -235,7 +235,7 @@ def parse_logs(engine, logs):
             elif line_type == "message":
                 messages.append(parsed)
         except KeyError:
-            logging.warning("error parsing message")
+            logging.warning("error parsing message: %s", line)
 
         # db calls
         if len(statuses) == insert_when:
