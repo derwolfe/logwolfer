@@ -23,7 +23,6 @@ Vagrant.configure(2) do |config|
      sudo add-apt-repository ppa:fkrull/deadsnakes
      sudo add-apt-repository -y ppa:pypy
      sudo apt-get update
-     sudo apt-get install -y build-essential
      sudo apt-get install -y pypy pypy-dev
      sudo apt-get install -y python-sqlite
      sudo apt-get install -y python-pip
