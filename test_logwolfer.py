@@ -12,6 +12,8 @@ from contextlib import contextmanager
 from datetime import datetime
 import json
 
+from sqlalchemy.pool import NullPool
+
 import logwolfer
 
 
@@ -120,13 +122,13 @@ class TestParseMessage(TestCase):
 class IntegrationTests(TestCase):
 
     def setUp(self):
-        self.engine = logwolfer.engine_factory("sqlite://")
+        self.engine = logwolfer.engine_factory("sqlite://", poolclass=NullPool)
 
     def tearDown(self):
         # close the connection
+        pass
 
     def test_doesNotInsertDuplicates(self):
-        engine = logwolfer.engine_factory("sqlite://")
         logwolfer.build_db(logwolfer.metadata, engine)
 
         self.msg = logwolfer.parse_message(
@@ -136,14 +138,13 @@ class IntegrationTests(TestCase):
             timestamp=1429026448
         )
 
-        logwolfer.insert_messages([self.msg, self.msg], engine)
+        logwolfer.insert_messages([self.msg, self.msg], self.engine)
         result = self.engine.execute("select count(*) as ct from messages;")
         self.assertEqual(1, result.scalar())
 
 
     def test_doesNotInsertDuplicates(self):
-        logwolfer.build_db(logwolfer.metadata, engine)
-
+        logwolfer.build_db(logwolfer.metadata, self.engine)
         self.status = logwolfer.parse_status(
             status_id=1,
             from_id=1,
