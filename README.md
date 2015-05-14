@@ -63,7 +63,7 @@ To load data into the application without running any analysis steps run:
 
 To only run analysis steps on a logwolfer.db already loaded with data, run:
 
-    python logwolfer.py --onlyanalyze=false --fname=./data/small_input --ftype=txt
+    python logwolfer.py --onlyanalyze=true --fname=./data/small_input --ftype=txt
 
 The application prints all of its analysis to stdout, if you would like to
 capture it via another file, simlply redirect it, e.g.:
