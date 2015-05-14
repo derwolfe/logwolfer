@@ -33,7 +33,6 @@ on a vagrant virtual machine.
      sudo add-apt-repository ppa:fkrull/deadsnakes
      sudo add-apt-repository -y ppa:pypy
      sudo apt-get update
-     sudo apt-get install -y build-essential
      sudo apt-get install -y pypy pypy-dev
      sudo apt-get install -y python-sqlite
      sudo apt-get install -y python-pip
@@ -64,7 +63,7 @@ To load data into the application without running any analysis steps run:
 
 To only run analysis steps on a logwolfer.db already loaded with data, run:
 
-    python logwolfer.py --onlyanalyze=false --fname=./data/small_input --ftype=txt
+    python logwolfer.py --onlyanalyze=true --fname=./data/small_input --ftype=txt
 
 The application prints all of its analysis to stdout, if you would like to
 capture it via another file, simlply redirect it, e.g.:

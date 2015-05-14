@@ -124,9 +124,6 @@ class IntegrationTests(TestCase):
     def setUp(self):
         self.engine = logwolfer.engine_factory("sqlite://", poolclass=NullPool)
 
-    def tearDown(self):
-        # close the connection
-        pass
 
     def test_doesNotInsertDuplicatesMessages(self):
         logwolfer.build_db(logwolfer.metadata, self.engine)
