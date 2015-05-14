@@ -26,6 +26,7 @@ import gzip
 
 import click
 
+
 logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
 
@@ -203,8 +204,8 @@ def read_file(fname, filetype, engine):
     @param fname: the filename
     @type fname: unicode string
 
-    @param fname: the filetype, e.g. "gzip" or "txt"
-    @type fname: unicode string
+    @param ftpe: the filetype, e.g. "gzip" or "txt"
+    @type fype: unicode string
 
     @param engine: a db engine capable of executing sql queries.
     @type engine: a sqlalchemy db engine
@@ -250,7 +251,7 @@ def parse_logs(engine, logs):
     # insert the remaining records
     insert_statuses(statuses, engine)
     insert_messages(messages, engine)
-    logging.info("final writes")
+    log.info("final writes")
 
 
 def build_sites(engine):
@@ -258,7 +259,7 @@ def build_sites(engine):
     With the logs loaded, build a table containing all of the site_ids.
     """
     sql = """
-    INSERT OR IGNORE INTO sites (site_id)
+INSERT OR IGNORE INTO sites (site_id)
 SELECT site_id
 FROM (
     SELECT distinct site_id FROM messages
@@ -269,7 +270,7 @@ GROUP BY site_id
 """
     log.info("building sites table")
     engine.execute(sql)
-    logging.info("finished populating sites table")
+    log.info("finished populating sites table")
 
 
 def build_indices(engine):
@@ -312,7 +313,7 @@ def classify_messages(engine):
     skipped.
 
     @param engine: a sqlalchemy engine that can perform queries.
-    @type engine: L{sqlalchemy.engine}
+    @type engine: L{sqlalchemy.engine.Engine}
     """
     log.info("tagging messages as chats or emails")
 
@@ -389,7 +390,7 @@ def run_all(fname, ftype, metadata, engine):
     @type ftype: a unicode string
 
     @param metadata: table metadata
-    @type ftype: L{sqlalchemy.Metadata}
+    @type metadata: L{sqlalchemy.schema.Metadata}
     """
     build_db(metadata, engine)
     read_file(fname, ftype, engine)
@@ -410,7 +411,7 @@ def load_only(fname, ftype, metadata, engine):
     @type ftype: a unicode string
 
     @param metadata: table metadata
-    @type ftype: L{sqlalchemy.Metadata}
+    @type ftype: L{sqlalchemy.schema.Metadata}
     """
     build_db(metadata, engine)
     read_file(fname, ftype, engine)
