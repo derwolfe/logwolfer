@@ -12,8 +12,6 @@ from contextlib import contextmanager
 from datetime import datetime
 import json
 
-from sqlalchemy.pool import NullPool
-
 import logwolfer
 
 
@@ -122,7 +120,7 @@ class TestParseMessage(TestCase):
 class IntegrationTests(TestCase):
 
     def setUp(self):
-        self.engine = logwolfer.engine_factory("sqlite://", poolclass=NullPool)
+        self.engine = logwolfer.engine_factory("sqlite://")
 
 
     def test_doesNotInsertDuplicatesMessages(self):

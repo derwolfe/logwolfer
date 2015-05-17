@@ -63,8 +63,7 @@ Chats = Table(
     Column("chat", Boolean, nullable=False)
 )
 
-
-def engine_factory(connection_string, poolclass=None):
+def engine_factory(connection_string):
     """
     Given a connection string, create a new sqlalchemy db engine object.
 
